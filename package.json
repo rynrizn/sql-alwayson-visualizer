@@ -1,0 +1,30 @@
+{
+  "name": "Banco-ha-demo",
+  "version": "1.0.0",
+  "description": "Aplicación Web de Demostración para Clúster SQL Server Always On",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["sql-server", "always-on", "high-availability", "socket.io", "express"],
+  "author": "",
+  "license": "MIT",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.24.0",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@11.24.0",
+  "type": "module",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mssql": "^12.7.0",
+    "socket.io": "^4.8.3"
+  }
+}

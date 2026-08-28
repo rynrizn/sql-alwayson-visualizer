@@ -1,0 +1,21 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Variables de entorno y credenciales de BD
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+logs/
+*.log
+
+# Archivos del sistema y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
