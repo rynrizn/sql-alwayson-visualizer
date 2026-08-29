@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banco HA - Demostración Clúster Always On</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>🏦 Sistema Bancario de Alta Disponibilidad</h1>
+  </header>
+
+  <main>
+    <!-- Área de Selección de Clientes -->
+    <section id="area-clientes">
+      <h3>Clientes</h3>
+      <ul id="lista-clientes">
+        <li data-id="1">🟢 Heed</li>
+        <li data-id="2">🟢 Carlos</li>
+        <li data-id="3">🟢 María</li>
+        <li data-id="4">🟢 Pedro</li>
+      </ul>
+    </section>
+
+    <!-- Área de Transferencias / Chat -->
+    <section id="area-chat">
+      <h3 id="chat-destinatario">Selecciona un cliente</h3>
+      <div id="mensajes-transferencias"></div>
+      <form id="form-transferencia">
+        <input type="number" id="input-monto" placeholder="Monto ($)" min="1" step="0.01" required>
+        <button type="submit" id="btn-enviar">ENVIAR DINERO</button>
+      </form>
+    </section>
+
+    <!-- Panel de Monitoreo -->
+    <section id="area-monitoreo">
+      <div id="badge-servidor">
+        <span id="estado-conexion">Consultando...</span>
+        <strong id="servidor-activo">---</strong>
+        <span id="tiempo-latencia">-- ms</span>
+      </div>
+
+      <div id="controles-trafico">
+        <button id="btn-iniciar-trafico">⚡ SIMULAR TRÁFICO MASIVO</button>
+        <button id="btn-detener-trafico" disabled>■ DETENER</button>
+        <span id="contador-trafico">Transacciones automáticas: 0</span>
+      </div>
+
+      <div id="tabla-movimientos">
+        <h3>Últimos Movimientos en Vivo</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>TX</th>
+              <th>Origen</th>
+              <th>Destino</th>
+              <th>Monto</th>
+              <th>Servidor</th>
+              <th>Latencia</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-movimientos"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/transferencias.js"></script>
+  <script src="js/monitor.js"></script>
+</body>
+</html>
