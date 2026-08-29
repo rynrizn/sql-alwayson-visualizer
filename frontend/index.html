@@ -7,66 +7,157 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <header>
-    <h1>🏦 Sistema Bancario de Alta Disponibilidad</h1>
+
+  <!-- ENCABEZADO PRINCIPAL -->
+  <header class="app-header">
+    <div class="logo-area">
+      <span class="bank-icon">🏦</span>
+      <div>
+        <h2>Banco de Crédito HA — Core Transaccional</h2>
+        <p class="subtitle">Demostración de Alta Disponibilidad con SQL Server Always On</p>
+      </div>
+    </div>
+    <div id="header-status-badge" class="badge-pill online">
+      <span class="status-dot"></span>
+      <span id="badge-text">SISTEMA OPERATIVO</span>
+    </div>
   </header>
 
-  <main>
-    <!-- Área de Selección de Clientes -->
-    <section id="area-clientes">
-      <h3>Clientes</h3>
-      <ul id="lista-clientes">
-        <li data-id="1">🟢 Heed</li>
-        <li data-id="2">🟢 Carlos</li>
-        <li data-id="3">🟢 María</li>
-        <li data-id="4">🟢 Pedro</li>
-      </ul>
-    </section>
+  <!-- CONTENEDOR PRINCIPAL (3 COLUMNAS) -->
+  <div class="main-layout">
 
-    <!-- Área de Transferencias / Chat -->
-    <section id="area-chat">
-      <h3 id="chat-destinatario">Selecciona un cliente</h3>
-      <div id="mensajes-transferencias"></div>
-      <form id="form-transferencia">
-        <input type="number" id="input-monto" placeholder="Monto ($)" min="1" step="0.01" required>
-        <button type="submit" id="btn-enviar">ENVIAR DINERO</button>
+    <!-- COLUMNA 1: LISTA DE CLIENTES Y CUENTAS -->
+    <aside class="sidebar-clients">
+      <div class="panel-header">
+        <h3>Contactos Bancarios</h3>
+        <span class="counter-badge" id="total-clientes">3</span>
+      </div>
+      <div class="search-box">
+        <input type="text" placeholder="Buscar contacto o cuenta..." disabled value="Cuentas BancoHA_DB">
+      </div>
+      <ul id="lista-clientes" class="client-list">
+        <!-- Generado dinámicamente por chat.js -->
+        <li class="client-item active" data-cuenta="1000000002" data-nombre="Maria Flores">
+          <div class="avatar">MF</div>
+          <div class="client-info">
+            <span class="client-name">Maria Flores</span>
+            <span class="account-number">Cta: 1000000002</span>
+          </div>
+          <span class="status-indicator"></span>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- COLUMNA 2: ÁREA DE CHAT / TRANSFERENCIAS -->
+    <section class="chat-viewport">
+      <div class="chat-header">
+        <div class="recipient-info">
+          <div class="avatar" id="current-recipient-avatar">MF</div>
+          <div>
+            <h3 id="current-recipient-name">Maria Flores</h3>
+            <p id="current-recipient-account">Cuenta Destino: 1000000002</p>
+          </div>
+        </div>
+        <div class="origin-account-info">
+          <span>Mi Cuenta (Carlos): <strong>1000000001</strong></span>
+        </div>
+      </div>
+
+      <!-- Historial de mensajes / transferencias -->
+      <div id="chat-messages" class="chat-messages">
+        <div class="system-message">
+          <span>🔒 Sesión protegida por Clúster de Alta Disponibilidad.</span>
+        </div>
+      </div>
+
+      <!-- Formulario para enviar dinero -->
+      <form id="form-transferencia" class="chat-input-bar">
+        <input 
+          type="number" 
+          id="input-monto" 
+          placeholder="Monto a transferir ($)" 
+          step="0.01" 
+          min="1" 
+          required 
+          autocomplete="off"
+        />
+        <input 
+          type="text" 
+          id="input-descripcion" 
+          placeholder="Nota / Concepto (opcional)" 
+          value="Transferencia inmediata"
+        />
+        <button type="submit" id="btn-enviar-dinero" class="btn-send">
+          <span>ENVIAR DINERO</span>
+          <span class="send-icon">💸</span>
+        </button>
       </form>
     </section>
 
-    <!-- Panel de Monitoreo -->
-    <section id="area-monitoreo">
-      <div id="badge-servidor">
-        <span id="estado-conexion">Consultando...</span>
-        <strong id="servidor-activo">---</strong>
-        <span id="tiempo-latencia">-- ms</span>
+    <!-- COLUMNA 3: PANEL DE MONITOREO DE ALTA DISPONIBILIDAD -->
+    <aside class="monitor-dashboard">
+      <div class="panel-header">
+        <h3>Monitoreo del Clúster</h3>
       </div>
 
-      <div id="controles-trafico">
-        <button id="btn-iniciar-trafico">⚡ SIMULAR TRÁFICO MASIVO</button>
-        <button id="btn-detener-trafico" disabled>■ DETENER</button>
-        <span id="contador-trafico">Transacciones automáticas: 0</span>
+      <!-- Tarjeta de Estado del Servidor Activo -->
+      <div class="server-card">
+        <div class="server-card-header">
+          <span>Servidor Activo (Listener)</span>
+          <span id="health-tag" class="tag online">SALUDABLE</span>
+        </div>
+        <div class="server-card-body">
+          <h2 id="server-name-display">LAPTOP-01</h2>
+          <div class="server-meta">
+            <div>Rol: <strong id="server-role-display">PRIMARY</strong></div>
+            <div>Latencia: <strong id="server-latency-display">12 ms</strong></div>
+          </div>
+        </div>
+        <div class="server-card-footer">
+          <small id="server-check-time">Última comprobación: --:--:--</small>
+        </div>
       </div>
 
-      <div id="tabla-movimientos">
-        <h3>Últimos Movimientos en Vivo</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>TX</th>
-              <th>Origen</th>
-              <th>Destino</th>
-              <th>Monto</th>
-              <th>Servidor</th>
-              <th>Latencia</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-movimientos"></tbody>
-        </table>
+      <!-- Controles de Tráfico Masivo -->
+      <div class="traffic-box">
+        <h4>Simulador de Carga Transaccional</h4>
+        <p class="traffic-desc">Genera operaciones automáticas continuas para validar el failover.</p>
+        <div class="traffic-actions">
+          <button id="btn-start-traffic" class="btn-traffic start">⚡ SIMULAR TRÁFICO</button>
+          <button id="btn-stop-traffic" class="btn-traffic stop" disabled>■ DETENER</button>
+        </div>
+        <div class="traffic-stats">
+          <span id="traffic-counter">Transacciones generadas: 0</span>
+        </div>
       </div>
-    </section>
-  </main>
 
+      <!-- Lista de Últimos Movimientos en Vivo -->
+      <div class="live-transactions">
+        <h4>Últimas Operaciones Confirmadas</h4>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>TX #</th>
+                <th>Origen ➔ Destino</th>
+                <th>Monto</th>
+                <th>Procesador</th>
+              </tr>
+            </thead>
+            <tbody id="live-tx-tbody">
+              <!-- Rellenado dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Librería de Socket.IO provista automáticamente por el servidor Node.js -->
   <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Scripts modulares del Frontend -->
   <script src="js/app.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/transferencias.js"></script>
