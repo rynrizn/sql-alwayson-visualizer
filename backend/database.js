@@ -184,23 +184,50 @@ async function obtenerMovimientosPorCuenta(numeroCuenta, limite = 30) {
  */
 async function obtenerCuentasClientes() {
   const conn = await getPool();
-  const result = await conn.request().query(`
+  try {
+    const result = await conn.request().query(`
+      SELECT 
+        IdCliente,
+        CI,
+        Nombre,
+        Apellido,
+        IdCuenta,
+        NumeroCuenta,
+        TipoCuenta,
+        Saldo,
+        Estado
+      FROM vw_CuentasClientes
+      WHERE Estado = 1
+      ORDER BY IdCliente ASC;
+    `);
+
+    if (result.recordset && result.recordset.length > 0) {
+      return result.recordset;
+    }
+  } catch (errVista) {
+    console.warn('Consulta a vw_CuentasClientes falló, ejecutando consulta directa de respaldo:', errVista.message);
+  }
+
+  // Fallback: consulta directa a las tablas base con JOIN
+  const fallbackResult = await conn.request().query(`
     SELECT 
-      IdCliente,
-      CI,
-      Nombre,
-      Apellido,
-      IdCuenta,
-      NumeroCuenta,
-      TipoCuenta,
-      Saldo,
-      Estado
-    FROM vw_CuentasClientes
-    WHERE Estado = 1
-    ORDER BY IdCliente ASC;
+      c.IdCliente,
+      c.CI,
+      c.Nombre,
+      c.Apellido,
+      cu.IdCuenta,
+      cu.NumeroCuenta,
+      COALESCE(tc.NombreTipo, 'Ahorro') AS TipoCuenta,
+      cu.Saldo,
+      cu.Estado
+    FROM Clientes c
+    INNER JOIN Cuentas cu ON c.IdCliente = cu.IdCliente
+    LEFT JOIN TiposCuenta tc ON cu.IdTipoCuenta = tc.IdTipoCuenta
+    WHERE cu.Estado = 1
+    ORDER BY c.IdCliente ASC;
   `);
 
-  return result.recordset;
+  return fallbackResult.recordset;
 }
 
 /**

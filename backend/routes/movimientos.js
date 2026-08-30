@@ -44,6 +44,7 @@ router.get('/cuenta/:numeroCuenta', async (req, res) => {
 
 // GET /api/movimientos/cuentas - Obtiene los clientes y sus números de cuenta
 router.get('/cuentas', async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   try {
     const cuentas = await db.obtenerCuentasClientes();
     res.json({
@@ -51,6 +52,7 @@ router.get('/cuentas', async (req, res) => {
       data: cuentas
     });
   } catch (err) {
+    console.error('Error al obtener lista de cuentas en /api/movimientos/cuentas:', err);
     res.status(500).json({
       success: false,
       error: 'No se pudo obtener la lista de clientes',
