@@ -2,6 +2,10 @@
 
 Sistema web para demostración y monitoreo en tiempo real de **Alta Disponibilidad con SQL Server Always On Availability Groups**.
 
+> 🌐 **Demostración Interactiva en Vivo (GitHub Pages):**  
+> Accede directamente a la versión 100% Client-Side con diseño Nothing:  
+> **[https://rynrizn.github.io/sql-alwayson-visualizer/](https://rynrizn.github.io/sql-alwayson-visualizer/)**
+
 Permite ejecutar transferencias bancarias protegidas por transacciones ACID, simular tráfico continuo y evidenciar la conmutación por error (*Failover*) automática entre réplicas primarias y secundarias sin interrupción del servicio web.
 
 ---
@@ -46,17 +50,19 @@ El repositorio cuenta con dos guías especializadas según el perfil:
 
 ---
 
-## 🌐 Demostración 100% Client-Side (Rama `demo-web`)
+## 🌐 Demostración 100% Client-Side (GitHub Pages)
 
 Para presentaciones o evaluaciones en cualquier dispositivo sin requerir Node.js ni SQL Server en ejecución:
 
-1. Cambiar a la rama de demostración:
-   ```bash
-   git checkout demo-web
-   ```
-2. Abrir directamente en el navegador:
-   * **Landing Informativa:** Abre [`demo-web/index.html`](./demo-web/index.html) para explorar la presentación del clúster, objetivos y la guía interactiva del failover.
-   * **Consola Interactiva:** Abre [`demo-web/demo.html`](./demo-web/demo.html) para operar la consola transaccional, simular la conmutación por error (2.5 s) y generar tráfico masivo continuo con persistencia local en `localStorage`.
+* 🚀 **Acceso directo online:** [https://rynrizn.github.io/sql-alwayson-visualizer/](https://rynrizn.github.io/sql-alwayson-visualizer/)
+* **Para ejecutarla localmente:**
+  1. Cambiar a la rama de demostración:
+     ```bash
+     git checkout demo-web
+     ```
+  2. Abrir directamente en cualquier navegador:
+     * **Landing Informativa:** Abre [`docs/index.html`](./docs/index.html) para explorar la presentación del clúster, objetivos y la guía interactiva del failover.
+     * **Consola Interactiva:** Abre [`docs/demo.html`](./docs/demo.html) para operar la consola transaccional, simular la conmutación por error (2.5 s) y generar tráfico masivo continuo con persistencia local en `localStorage`.
 
 ---
 
