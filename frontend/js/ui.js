@@ -37,6 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function aplicarTema(tema) {
   const oscuro = tema === 'dark';
   document.body.classList.toggle('theme-dark', oscuro);
-  document.getElementById('btn-toggle-theme').setAttribute('aria-label', oscuro ? 'Activar modo claro' : 'Activar modo oscuro');
+  const botonTema = document.getElementById('btn-toggle-theme');
+  if (botonTema) {
+    botonTema.setAttribute('aria-label', oscuro ? 'Activar modo claro' : 'Activar modo oscuro');
+    botonTema.title = oscuro ? 'Activar modo claro' : 'Activar modo oscuro';
+  }
   localStorage.setItem('banco-ha-theme', oscuro ? 'dark' : 'light');
 }
