@@ -7,8 +7,6 @@ class TraficoService {
     this.contador = 0;       // Contador de transferencias simuladas
     this.io = null;          // Instancia de Socket.IO
     
-    // Cuentas creadas en los scripts de prueba de BancoHA_DB
-    this.cuentasDisponibles = ['1000000001', '1000000002', '1000000003'];
   }
 
   // Permite inyectar la instancia de Socket.IO desde server.js
@@ -55,21 +53,24 @@ class TraficoService {
 
   // Genera una transferencia con datos aleatorios
   async generarTransferenciaAleatoria() {
-    // Seleccionar cuenta de origen al azar
-    const origenIdx = Math.floor(Math.random() * this.cuentasDisponibles.length);
-    const cuentaOrigen = this.cuentasDisponibles[origenIdx];
-    
-    // Seleccionar cuenta de destino que sea DIFERENTE a la de origen
-    let destinoIdx = Math.floor(Math.random() * this.cuentasDisponibles.length);
-    while (destinoIdx === origenIdx) {
-      destinoIdx = Math.floor(Math.random() * this.cuentasDisponibles.length);
-    }
-    const cuentaDestino = this.cuentasDisponibles[destinoIdx];
-
-    // Monto aleatorio entre $10.00 y $75.00
-    const monto = (Math.random() * 65 + 10).toFixed(2);
-
     try {
+      // Se consulta en cada ciclo para respetar las cuentas activas de la base
+      // incluso si se añaden perfiles fuera de la aplicación.
+      const cuentasDisponibles = await db.obtenerNumerosCuentasActivas();
+      if (cuentasDisponibles.length < 2) {
+        throw new Error('Se requieren al menos dos cuentas activas para simular tráfico.');
+      }
+
+      // Seleccionar cuenta de origen y destino diferentes al azar.
+      const origenIdx = Math.floor(Math.random() * cuentasDisponibles.length);
+      const cuentaOrigen = cuentasDisponibles[origenIdx];
+      let destinoIdx = Math.floor(Math.random() * cuentasDisponibles.length);
+      while (destinoIdx === origenIdx) {
+        destinoIdx = Math.floor(Math.random() * cuentasDisponibles.length);
+      }
+      const cuentaDestino = cuentasDisponibles[destinoIdx];
+      const monto = (Math.random() * 65 + 10).toFixed(2);
+
       // Ejecutar el procedimiento almacenado
       const tx = await db.ejecutarTransferencia(
         cuentaOrigen,

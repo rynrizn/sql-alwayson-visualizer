@@ -149,6 +149,36 @@ async function obtenerUltimosMovimientos(limite = 15) {
 }
 
 /**
+ * 3.1 CONSULTAR MOVIMIENTOS DE UN PERFIL
+ * Devuelve únicamente las transferencias en las que la cuenta seleccionada
+ * participó como origen o como destino. Así cada perfil conserva su historial.
+ */
+async function obtenerMovimientosPorCuenta(numeroCuenta, limite = 30) {
+  const conn = await getPool();
+  const request = conn.request();
+  request.input('numeroCuenta', sql.VarChar(20), numeroCuenta);
+  request.input('limite', sql.Int, limite);
+
+  const result = await request.query(`
+    SELECT TOP (@limite)
+      IdTransaccion AS idTransaccion,
+      CuentaOrigen,
+      CuentaDestino,
+      TipoTransaccion,
+      Monto,
+      FechaTransaccion,
+      ServidorProcesador,
+      Estado,
+      Descripcion
+    FROM vw_UltimasTransacciones
+    WHERE CuentaOrigen = @numeroCuenta OR CuentaDestino = @numeroCuenta
+    ORDER BY FechaTransaccion DESC;
+  `);
+
+  return result.recordset;
+}
+
+/**
  * 4. CONSULTAR LISTA DE CLIENTES Y CUENTAS ACTIVAS
  * Utiliza la vista `vw_CuentasClientes` para mostrar los usuarios en la web.
  */
@@ -173,11 +203,23 @@ async function obtenerCuentasClientes() {
   return result.recordset;
 }
 
+/**
+ * 4.1 OBTENER NÚMEROS DE CUENTA ACTIVOS
+ * Fuente única para procesos que necesitan operar sobre todos los perfiles,
+ * incluido el simulador de tráfico. No se mantiene una lista estática en Node.
+ */
+async function obtenerNumerosCuentasActivas() {
+  const cuentas = await obtenerCuentasClientes();
+  return cuentas.map((cuenta) => cuenta.NumeroCuenta);
+}
+
 // Exportar las funciones para que puedan ser usadas por las rutas de Express y servicios
 module.exports = {
   getPool,
   obtenerServidorActivo,
   ejecutarTransferencia,
   obtenerUltimosMovimientos,
-  obtenerCuentasClientes
+  obtenerMovimientosPorCuenta,
+  obtenerCuentasClientes,
+  obtenerNumerosCuentasActivas
 };

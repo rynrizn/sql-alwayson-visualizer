@@ -21,6 +21,27 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/movimientos/cuenta/:numeroCuenta - Historial de un perfil específico
+router.get('/cuenta/:numeroCuenta', async (req, res) => {
+  try {
+    const limiteSolicitado = parseInt(req.query.limite, 10) || 30;
+    // Evita respuestas excesivas si un cliente altera el parámetro manualmente.
+    const limite = Math.min(Math.max(limiteSolicitado, 1), 100);
+    const movimientos = await db.obtenerMovimientosPorCuenta(req.params.numeroCuenta, limite);
+
+    res.json({
+      success: true,
+      data: movimientos
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: 'No se pudo consultar el historial del perfil',
+      detalle: err.message
+    });
+  }
+});
+
 // GET /api/movimientos/cuentas - Obtiene los clientes y sus números de cuenta
 router.get('/cuentas', async (req, res) => {
   try {
