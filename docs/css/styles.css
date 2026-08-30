@@ -509,6 +509,11 @@ input:disabled, select:disabled {
 .logo-area h2 {
   font-size: clamp(0.88rem, 1.7vw, 1.08rem);
   line-height: 1.2;
+  white-space: nowrap;
+}
+
+.brand-short {
+  display: none;
 }
 
 .subtitle {
@@ -516,6 +521,7 @@ input:disabled, select:disabled {
   font-size: 0.7rem;
   color: var(--muted);
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .nav-links-desktop {
@@ -551,7 +557,9 @@ input:disabled, select:disabled {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink);
+  white-space: nowrap;
   transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  flex-shrink: 0;
 }
 
 .btn-back-landing:hover {
@@ -559,6 +567,26 @@ input:disabled, select:disabled {
   box-shadow: var(--btn-shadow);
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.header-cta-btn .btn-text-short {
+  display: none;
+}
+
+.mobile-monitor-status-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 2px var(--surface);
+  display: none;
+}
+
+.mobile-drawer-close {
+  display: none;
 }
 
 /* ==========================================================================
@@ -1934,13 +1962,70 @@ tbody td strong {
   }
 }
 
-@media (max-width: 760px) {
-  .mobile-toggle-btn {
-    display: inline-flex;
+@media (max-width: 768px) {
+  .app-header {
+    height: 56px;
+    min-height: 56px;
+    max-height: 56px;
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .header-left, .header-right {
+    gap: 6px;
   }
 
   .nav-links-desktop {
     display: none;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .brand-full {
+    display: none;
+  }
+
+  .brand-short {
+    display: inline;
+    font-size: 0.88rem;
+    font-weight: 850;
+  }
+
+  .btn-back-landing {
+    padding: 0;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    justify-content: center;
+  }
+
+  .btn-back-landing .back-text {
+    display: none;
+  }
+
+  .mobile-toggle-btn {
+    display: inline-flex;
+    position: relative;
+  }
+
+  .mobile-drawer-close {
+    display: inline-flex;
+  }
+
+  .header-cta-btn {
+    padding: 6px 11px;
+    font-size: 0.72rem;
+    min-height: 34px;
+  }
+
+  .header-cta-btn .btn-text-full {
+    display: none;
+  }
+
+  .header-cta-btn .btn-text-short {
+    display: inline;
   }
 
   .pillars-grid, .layers-grid {
@@ -1965,55 +2050,219 @@ tbody td strong {
 
   .main-layout {
     grid-template-columns: 1fr;
+    height: calc(100dvh - 56px);
+    max-height: calc(100dvh - 56px);
+  }
+
+  .sidebar-clients, .monitor-dashboard {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    z-index: 60;
+    width: min(88vw, 340px);
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .sidebar-clients {
-    position: fixed;
-    top: 64px;
-    bottom: 0;
     left: 0;
-    width: 290px;
-    z-index: 60;
-    transform: translateX(-100%);
-    transition: transform 0.25s ease;
-    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.4);
+    transform: translateX(-102%);
+    border-right: 1px solid var(--line);
+  }
+
+  .monitor-dashboard {
+    right: 0;
+    transform: translateX(102%);
+    border-left: 1px solid var(--line);
   }
 
   .main-layout.mobile-sidebar-open .sidebar-clients {
     transform: translateX(0);
   }
 
-  .monitor-dashboard {
-    position: fixed;
-    top: 64px;
-    bottom: 0;
-    right: 0;
-    width: 320px;
-    z-index: 60;
-    transform: translateX(100%);
-    transition: transform 0.25s ease;
-    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.4);
-  }
-
   .main-layout.mobile-monitor-open .monitor-dashboard {
     transform: translateX(0);
   }
 
+  .chat-header {
+    height: auto;
+    min-height: 52px;
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .recipient-info {
+    min-width: 0;
+    flex: 1;
+    gap: 8px;
+  }
+
+  .recipient-info .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.72rem;
+  }
+
+  .recipient-info h3 {
+    font-size: 0.88rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .recipient-info p {
+    font-size: 0.68rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .origin-account-info {
+    padding: 4px 8px;
+    font-size: 0.68rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .origin-account-info strong {
+    font-size: 0.88rem;
+  }
+
   .chat-input-bar {
     grid-template-columns: 1fr 1fr;
-    padding: 10px 14px;
+    padding: 8px 12px;
     gap: 6px;
+  }
+
+  .chat-input-bar select#input-destino {
+    grid-column: 1;
+    font-size: 0.78rem;
+    padding: 8px;
+  }
+
+  .chat-input-bar input#input-monto {
+    grid-column: 2;
+    font-size: 0.78rem;
+    padding: 8px;
   }
 
   .chat-input-bar input#input-descripcion {
     grid-column: 1 / -1;
+    font-size: 0.78rem;
+    padding: 8px;
   }
 
   .btn-send {
     grid-column: 1 / -1;
+    min-height: 42px;
+    width: 100%;
+    font-size: 0.82rem;
+  }
+
+  .chat-messages {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .tx-bubble {
+    width: min(100%, 330px);
+    padding: 10px 12px;
+  }
+
+  .tx-amount {
+    font-size: 1.15rem;
+    margin: 4px 0;
   }
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .app-header {
+    padding: 0 8px;
+    gap: 4px;
+  }
+
+  .header-left {
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .header-right {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .logo-area {
+    gap: 6px;
+  }
+
+  .bank-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .bank-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .icon-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btn-back-landing {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+
+  /* Ocultar badge grande de estado en celulares para evitar saturación */
+  #header-status-badge {
+    display: none;
+  }
+
+  /* Mostrar punto indicador sobre el botón de monitor móvil */
+  .mobile-monitor-status-dot {
+    display: block;
+  }
+
+  .chat-header {
+    padding: 6px 10px;
+  }
+
+  .chat-input-bar {
+    padding: 6px 8px;
+    gap: 5px;
+  }
+
+  .chat-messages {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .tx-bubble {
+    width: min(100%, 300px);
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 370px) {
+  .bank-icon {
+    display: none;
+  }
+
+  .header-btn-qr {
+    display: none;
+  }
+
+  .brand-short {
+    font-size: 0.8rem;
   }
 }
