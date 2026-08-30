@@ -15,7 +15,7 @@
     "socket.io",
     "express"
   ],
-  "author": "",
+  "author": "Rynrizn",
   "license": "MIT",
   "devEngines": {
     "packageManager": {
