@@ -21,6 +21,7 @@
       <span class="status-dot"></span>
       <span id="badge-text">SISTEMA OPERATIVO</span>
     </div>
+    <button id="btn-toggle-theme" class="icon-button header-button" type="button" aria-label="Activar modo oscuro" title="Cambiar tema">◐</button>
   </header>
 
   <!-- CONTENEDOR PRINCIPAL (3 COLUMNAS) -->
@@ -32,6 +33,7 @@
         <h3>Perfiles</h3>
         <div class="panel-actions">
           <span class="counter-badge" id="total-clientes">0</span>
+          <button id="btn-toggle-sidebar" class="icon-button" type="button" aria-pressed="false" aria-label="Contraer perfiles" title="Contraer perfiles">‹</button>
           <!-- Abre un formulario preparado; no realiza escrituras en SQL Server. -->
           <button id="btn-add-user" class="icon-button" type="button" aria-label="Preparar nuevo usuario" title="Preparar nuevo usuario">+</button>
         </div>
@@ -99,6 +101,7 @@
     <aside class="monitor-dashboard">
       <div class="panel-header">
         <h3>Monitoreo del Clúster</h3>
+        <button id="btn-toggle-monitor" class="icon-button" type="button" aria-pressed="false" aria-label="Expandir monitoreo" title="Expandir monitoreo">›</button>
       </div>
 
       <!-- Tarjeta de Estado del Servidor Activo -->
@@ -189,5 +192,6 @@
   <script src="js/transferencias.js"></script>
   <script src="js/monitor.js"></script>
   <script src="js/modales.js"></script>
+  <script src="js/ui.js"></script>
 </body>
 </html>
