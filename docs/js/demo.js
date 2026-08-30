@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function aplicarTema(tema) {
     const oscuro = tema === 'dark';
     document.body.classList.toggle('theme-dark', oscuro);
+    document.body.classList.toggle('theme-light', !oscuro);
     if (btnToggleTheme) {
       btnToggleTheme.setAttribute('aria-label', oscuro ? 'Activar modo claro' : 'Activar modo oscuro');
       btnToggleTheme.title = oscuro ? 'Activar modo claro' : 'Activar modo oscuro';
