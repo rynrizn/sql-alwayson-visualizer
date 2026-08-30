@@ -26,25 +26,17 @@
   <!-- CONTENEDOR PRINCIPAL (3 COLUMNAS) -->
   <div class="main-layout">
 
-    <!-- COLUMNA 1: LISTA DE CLIENTES Y CUENTAS -->
+    <!-- COLUMNA 1: PERFILES DISPONIBLES EN LA BASE DE DATOS -->
     <aside class="sidebar-clients">
       <div class="panel-header">
-        <h3>Contactos Bancarios</h3>
-        <span class="counter-badge" id="total-clientes">3</span>
+        <h3>Perfiles</h3>
+        <span class="counter-badge" id="total-clientes">0</span>
       </div>
       <div class="search-box">
-        <input type="text" placeholder="Buscar contacto o cuenta..." disabled value="Cuentas BancoHA_DB">
+        <input type="text" id="input-buscar-perfil" placeholder="Buscar perfil o cuenta..." autocomplete="off">
       </div>
       <ul id="lista-clientes" class="client-list">
-        <!-- Generado dinámicamente por chat.js -->
-        <li class="client-item active" data-cuenta="1000000002" data-nombre="Maria Flores">
-          <div class="avatar">MF</div>
-          <div class="client-info">
-            <span class="client-name">Maria Flores</span>
-            <span class="account-number">Cta: 1000000002</span>
-          </div>
-          <span class="status-indicator"></span>
-        </li>
+        <!-- Generado dinámicamente con los registros de vw_CuentasClientes. -->
       </ul>
     </aside>
 
@@ -52,26 +44,29 @@
     <section class="chat-viewport">
       <div class="chat-header">
         <div class="recipient-info">
-          <div class="avatar" id="current-recipient-avatar">MF</div>
+          <div class="avatar" id="current-profile-avatar">--</div>
           <div>
-            <h3 id="current-recipient-name">Maria Flores</h3>
-            <p id="current-recipient-account">Cuenta Destino: 1000000002</p>
+            <h3 id="current-profile-name">Selecciona un perfil</h3>
+            <p id="current-profile-account">Cuenta: --</p>
           </div>
         </div>
         <div class="origin-account-info">
-          <span>Mi Cuenta (Carlos): <strong>1000000001</strong></span>
+          <span>Saldo disponible: <strong id="current-profile-balance">--</strong></span>
         </div>
       </div>
 
       <!-- Historial de mensajes / transferencias -->
       <div id="chat-messages" class="chat-messages">
         <div class="system-message">
-          <span>🔒 Sesión protegida por Clúster de Alta Disponibilidad.</span>
+          <span>🔒 Selecciona un perfil para consultar sus movimientos protegidos por el clúster.</span>
         </div>
       </div>
 
       <!-- Formulario para enviar dinero -->
       <form id="form-transferencia" class="chat-input-bar">
+        <select id="input-destino" aria-label="Perfil destinatario" required disabled>
+          <option value="">Destino</option>
+        </select>
         <input 
           type="number" 
           id="input-monto" 
@@ -80,14 +75,16 @@
           min="1" 
           required 
           autocomplete="off"
+          disabled
         />
         <input 
           type="text" 
           id="input-descripcion" 
           placeholder="Nota / Concepto (opcional)" 
           value="Transferencia inmediata"
+          disabled
         />
-        <button type="submit" id="btn-enviar-dinero" class="btn-send">
+        <button type="submit" id="btn-enviar-dinero" class="btn-send" disabled>
           <span>ENVIAR DINERO</span>
           <span class="send-icon">💸</span>
         </button>

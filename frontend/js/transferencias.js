@@ -1,61 +1,45 @@
+// Envía transferencias usando siempre el perfil seleccionado como cuenta origen.
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('form-transferencia');
   const inputMonto = document.getElementById('input-monto');
-  const inputDesc = document.getElementById('input-descripcion');
-  const chatMessages = document.getElementById('chat-messages');
+  const inputDestino = document.getElementById('input-destino');
+  const inputDescripcion = document.getElementById('input-descripcion');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const monto = parseFloat(inputMonto.value);
-    if (!monto || monto <= 0) return;
-
-    const payload = {
-      cuentaOrigen: window.estadoChat.cuentaOrigen,
-      cuentaDestino: window.estadoChat.cuentaDestino,
-      monto: monto,
-      descripcion: inputDesc.value || 'Transferencia Web'
-    };
+  form.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    const monto = Number.parseFloat(inputMonto.value);
+    const cuentaOrigen = window.estadoBanco.cuentaActiva;
+    const cuentaDestino = inputDestino.value;
+    if (!cuentaOrigen || !cuentaDestino || !monto || monto <= 0) return;
 
     try {
-      const res = await fetch('/api/transferencia', {
+      const respuesta = await fetch('/api/transferencia', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          cuentaOrigen,
+          cuentaDestino,
+          monto,
+          descripcion: inputDescripcion.value || 'Transferencia Web'
+        })
       });
+      const resultado = await respuesta.json();
+      if (!resultado.success) throw new Error(resultado.detalle || resultado.error);
 
-      const responseData = await res.json();
-
-      if (responseData.success) {
-        // Agregar la burbuja visual al chat
-        const tx = responseData.data;
-        agregarBurbujaChat(tx);
-        inputMonto.value = '';
-      } else {
-        alert(`Error en la transferencia: ${responseData.detalle || responseData.error}`);
-      }
-    } catch (err) {
-      console.error('Fallo en la comunicación:', err);
-      alert('Error de conexión con el servidor. Puede que esté en proceso de Failover.');
+      inputMonto.value = '';
+      // La consulta vuelve a ser la fuente de verdad para los envíos y recibos.
+      await seleccionarPerfil(cuentaOrigen);
+      actualizarSaldoLocal(resultado.data.nuevoSaldoOrigen);
+    } catch (error) {
+      console.error('Error enviando transferencia:', error);
+      alert(`Error en la transferencia: ${error.message}`);
     }
   });
-
-  function agregarBurbujaChat(tx) {
-    const bubble = document.createElement('div');
-    bubble.className = 'tx-bubble';
-    bubble.innerHTML = `
-      <div class="tx-bubble-title">
-        <span>💸 Envío a ${window.estadoChat.nombreDestino}</span>
-        <span class="tx-status-confirmed">✓ Confirmada</span>
-      </div>
-      <div class="tx-amount">$${tx.monto.toFixed(2)}</div>
-      <div class="tx-meta">
-        <span>Servidor: <strong>${tx.servidorProcesador}</strong></span>
-        <span>Latencia: ${tx.tiempoRespuestaMs} ms | ${new Date(tx.fecha).toLocaleTimeString()}</span>
-      </div>
-    `;
-
-    chatMessages.appendChild(bubble);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
 });
+
+/** Refresca el saldo mostrado tras una transferencia confirmada. */
+function actualizarSaldoLocal(saldo) {
+  const perfil = window.estadoBanco.perfiles.find((item) => item.NumeroCuenta === window.estadoBanco.cuentaActiva);
+  if (perfil) perfil.Saldo = saldo;
+  document.getElementById('current-profile-balance').textContent = formatearMonto(saldo);
+}
