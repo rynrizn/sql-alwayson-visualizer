@@ -11,20 +11,46 @@
 
   <!-- ENCABEZADO PRINCIPAL -->
   <header class="app-header">
-    <div class="logo-area">
-      <span class="bank-icon">🏦</span>
-      <div>
-        <h2>Banco de Crédito HA — Core Transaccional</h2>
-        <p class="subtitle">Demostración de Alta Disponibilidad con SQL Server Always On</p>
+    <div class="header-left">
+      <!-- Botón móvil para desplegar perfiles -->
+      <button id="btn-mobile-sidebar" class="icon-button mobile-toggle-btn" type="button" aria-label="Abrir panel de perfiles" title="Perfiles">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      </button>
+
+      <div class="logo-area">
+        <div class="bank-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="21" x2="21" y2="21"></line><line x1="3" y1="10" x2="21" y2="10"></line><polyline points="12 3 2 10 22 10"></polyline><line x1="6" y1="10" x2="6" y2="21"></line><line x1="10" y1="10" x2="10" y2="21"></line><line x1="14" y1="10" x2="14" y2="21"></line><line x1="18" y1="10" x2="18" y2="21"></line></svg>
+        </div>
+        <div>
+          <h2>Banco de Crédito HA — Core Transaccional</h2>
+          <p class="subtitle">Demostración de Alta Disponibilidad con SQL Server Always On</p>
+        </div>
       </div>
     </div>
-    <div id="header-status-badge" class="badge-pill online">
-      <span class="status-dot"></span>
-      <span id="badge-text">SISTEMA OPERATIVO</span>
+
+    <div class="header-right">
+      <div id="header-status-badge" class="badge-pill online">
+        <span class="status-dot"></span>
+        <span id="badge-text">CONECTANDO...</span>
+      </div>
+
+      <!-- Botón móvil para desplegar monitoreo de clúster -->
+      <button id="btn-mobile-monitor" class="icon-button mobile-toggle-btn" type="button" aria-label="Abrir monitoreo del clúster" title="Monitoreo del Clúster">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+      </button>
+
+      <button id="btn-open-qr" class="icon-button header-button" type="button" aria-label="Web del Proyecto (QR y Enlace)" title="Web del Proyecto">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="7" y1="7" x2="7.01" y2="7"></line><line x1="17" y1="7" x2="17.01" y2="7"></line><line x1="7" y1="17" x2="7.01" y2="17"></line><line x1="17" y1="17" x2="17.01" y2="17"></line></svg>
+      </button>
+
+      <button id="btn-toggle-theme" class="icon-button header-button" type="button" aria-label="Activar modo oscuro" title="Cambiar tema">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
     </div>
-    <button id="btn-toggle-theme" class="icon-button header-button" type="button" aria-label="Activar modo oscuro" title="Cambiar tema">◐</button>
-    <button id="btn-open-qr" class="icon-button header-button" type="button" aria-label="Mostrar código QR" title="Mostrar código QR">⌘</button>
   </header>
+
+  <!-- TELÓN DE FONDO PARA PANELES MÓVILES -->
+  <div id="mobile-backdrop" class="mobile-backdrop" aria-hidden="true"></div>
 
   <!-- CONTENEDOR PRINCIPAL (3 COLUMNAS) -->
   <div class="main-layout">
@@ -35,9 +61,13 @@
         <h3>Perfiles</h3>
         <div class="panel-actions">
           <span class="counter-badge" id="total-clientes">0</span>
-          <button id="btn-toggle-sidebar" class="icon-button" type="button" aria-pressed="false" aria-label="Contraer perfiles" title="Contraer perfiles">‹</button>
+          <button id="btn-toggle-sidebar" class="icon-button" type="button" aria-pressed="false" aria-label="Contraer perfiles" title="Contraer perfiles">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
           <!-- Abre un formulario preparado; no realiza escrituras en SQL Server. -->
-          <button id="btn-add-user" class="icon-button" type="button" aria-label="Preparar nuevo usuario" title="Preparar nuevo usuario">+</button>
+          <button id="btn-add-user" class="icon-button" type="button" aria-label="Preparar nuevo usuario" title="Preparar nuevo usuario">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
         </div>
       </div>
       <div class="search-box">
@@ -66,7 +96,8 @@
       <!-- Historial de mensajes / transferencias -->
       <div id="chat-messages" class="chat-messages">
         <div class="system-message">
-          <span>🔒 Selecciona un perfil para consultar sus movimientos protegidos por el clúster.</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span>Selecciona un perfil para consultar sus movimientos protegidos por el clúster.</span>
         </div>
       </div>
 
@@ -94,7 +125,7 @@
         />
         <button type="submit" id="btn-enviar-dinero" class="btn-send" disabled>
           <span>ENVIAR DINERO</span>
-          <span class="send-icon">💸</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
         </button>
       </form>
     </section>
@@ -103,38 +134,51 @@
     <aside class="monitor-dashboard">
       <div class="panel-header">
         <h3>Monitoreo del Clúster</h3>
-        <button id="btn-toggle-monitor" class="icon-button" type="button" aria-pressed="false" aria-label="Expandir monitoreo" title="Expandir monitoreo">›</button>
+        <button id="btn-toggle-monitor" class="icon-button" type="button" aria-pressed="false" aria-label="Expandir monitoreo" title="Expandir monitoreo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
       </div>
 
-      <!-- Tarjeta de Estado del Servidor Activo -->
-      <div class="server-card">
-        <div class="server-card-header">
-          <span>Servidor Activo (Listener)</span>
-          <span id="health-tag" class="tag online">SALUDABLE</span>
-        </div>
-        <div class="server-card-body">
-          <h2 id="server-name-display">LAPTOP-01</h2>
-          <div class="server-meta">
-            <div>Rol: <strong id="server-role-display">PRIMARY</strong></div>
-            <div>Latencia: <strong id="server-latency-display">12 ms</strong></div>
+      <!-- CONTENEDOR SUPERIOR: 2 COLUMNAS AL EXPANDIR EN PANTALLAS DE PC -->
+      <div class="monitor-top-grid">
+
+        <!-- Tarjeta de Estado del Servidor Activo -->
+        <div class="server-card">
+          <div class="server-card-header">
+            <span>Servidor Activo (Listener)</span>
+            <span id="health-tag" class="tag online">CONECTANDO</span>
+          </div>
+          <div class="server-card-body">
+            <h2 id="server-name-display">Conectando...</h2>
+            <div class="server-meta">
+              <div>Rol: <strong id="server-role-display">--</strong></div>
+              <div>Latencia: <strong id="server-latency-display">-- ms</strong></div>
+            </div>
+          </div>
+          <div class="server-card-footer">
+            <small id="server-check-time">Comprobando conexión...</small>
           </div>
         </div>
-        <div class="server-card-footer">
-          <small id="server-check-time">Última comprobación: --:--:--</small>
-        </div>
-      </div>
 
-      <!-- Controles de Tráfico Masivo -->
-      <div class="traffic-box">
-        <h4>Simulador de Carga Transaccional</h4>
-        <p class="traffic-desc">Genera operaciones automáticas continuas para validar el failover.</p>
-        <div class="traffic-actions">
-          <button id="btn-start-traffic" class="btn-traffic start">⚡ SIMULAR TRÁFICO</button>
-          <button id="btn-stop-traffic" class="btn-traffic stop" disabled>■ DETENER</button>
+        <!-- Controles de Tráfico Masivo -->
+        <div class="traffic-box">
+          <h4>Simulador de Carga Transaccional</h4>
+          <p class="traffic-desc">Genera operaciones automáticas continuas para validar el failover.</p>
+          <div class="traffic-actions">
+            <button id="btn-start-traffic" class="btn-traffic start">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>SIMULAR TRÁFICO</span>
+            </button>
+            <button id="btn-stop-traffic" class="btn-traffic stop" disabled>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect></svg>
+              <span>DETENER</span>
+            </button>
+          </div>
+          <div class="traffic-stats">
+            <span id="traffic-counter">Transacciones generadas: 0</span>
+          </div>
         </div>
-        <div class="traffic-stats">
-          <span id="traffic-counter">Transacciones generadas: 0</span>
-        </div>
+
       </div>
 
       <!-- Lista de Últimos Movimientos en Vivo -->
@@ -151,7 +195,7 @@
               </tr>
             </thead>
             <tbody id="live-tx-tbody">
-              <!-- Rellenado dinámicamente -->
+              <!-- Rellenado dinámicamente desde SQL Server -->
             </tbody>
           </table>
         </div>
@@ -168,7 +212,9 @@
           <p class="eyebrow">NUEVO PERFIL</p>
           <h3 id="user-modal-title">Preparar usuario</h3>
         </div>
-        <button class="icon-button" type="button" data-close-modal="user-modal" aria-label="Cerrar">×</button>
+        <button class="icon-button" type="button" data-close-modal="user-modal" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <p class="modal-notice">Este formulario es visual: aún no existe una ruta de alta y no se enviarán datos a la base de datos.</p>
       <div class="form-grid">
@@ -185,15 +231,34 @@
     </form>
   </dialog>
 
-  <!-- VISOR QR: la imagen se podrá sustituir sin cambiar el comportamiento del modal. -->
+  <!-- VISOR QR: Acceso directo a la web del proyecto -->
   <dialog id="qr-modal" class="app-modal qr-modal" aria-labelledby="qr-modal-title">
     <section class="qr-card">
-      <button class="icon-button qr-close" type="button" data-close-modal="qr-modal" aria-label="Cerrar QR">×</button>
-      <p class="eyebrow">CÓDIGO QR</p>
-      <h3 id="qr-modal-title">Pago rápido</h3>
-      <p>Escanea este espacio cuando se cargue el QR oficial.</p>
-      <img class="qr-placeholder" src="assets/qr-placeholder.svg" alt="Espacio reservado para el código QR">
-      <small>Reemplaza <code>frontend/assets/qr-placeholder.svg</code> por la imagen final sin alterar este modal.</small>
+      <button class="icon-button qr-close" type="button" data-close-modal="qr-modal" aria-label="Cerrar ventana de QR">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <p class="eyebrow">ACCESO RÁPIDO</p>
+      <h3 id="qr-modal-title">Web del Proyecto</h3>
+
+      <div class="qr-image-wrapper">
+        <img class="qr-placeholder" src="assets/qr-placeholder.svg" alt="Código QR para acceder a la web del proyecto">
+      </div>
+
+      <!-- Sección de enlace directo para navegar o copiar URL -->
+      <div class="qr-link-section">
+        <label for="qr-link-input" class="qr-link-label">Enlace directo a la plataforma:</label>
+        <div class="qr-link-box">
+          <input type="text" id="qr-link-input" readonly value="http://localhost:3000" />
+          <button type="button" id="btn-copy-qr-link" class="btn-secondary" title="Copiar enlace">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span id="copy-qr-text">Copiar</span>
+          </button>
+        </div>
+        <a id="qr-open-link" href="http://localhost:3000" target="_blank" rel="noopener noreferrer" class="btn-send qr-go-btn">
+          <span>ABRIR ENLACE</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
+      </div>
     </section>
   </dialog>
 
