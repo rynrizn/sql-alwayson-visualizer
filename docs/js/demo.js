@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function aplicarTema(tema) {
     const oscuro = tema === 'dark';
     document.body.classList.toggle('theme-dark', oscuro);
+    document.body.classList.toggle('theme-light', !oscuro);
     if (btnToggleTheme) {
       btnToggleTheme.setAttribute('aria-label', oscuro ? 'Activar modo claro' : 'Activar modo oscuro');
       btnToggleTheme.title = oscuro ? 'Activar modo claro' : 'Activar modo oscuro';
@@ -335,6 +336,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (badgeText) {
         badgeText.innerText = `ACTIVO: ${datos.servidor}`;
+      }
+
+      // Actualizar punto de estado sobre botón móvil
+      const mobileMonitorDot = document.querySelector('.mobile-monitor-status-dot');
+      if (mobileMonitorDot) {
+        mobileMonitorDot.style.background = datos.enFailover ? 'var(--accent)' : 'var(--green)';
       }
 
       // Habilitar o deshabilitar botones según el servidor primario activo
@@ -599,6 +606,10 @@ document.addEventListener('DOMContentLoaded', () => {
   btnToggleMonitor?.addEventListener('click', alternarMonitor);
   btnMobileMonitor?.addEventListener('click', alternarMonitor);
   backdrop?.addEventListener('click', cerrarDrawersMoviles);
+
+  document.querySelectorAll('.mobile-drawer-close').forEach(btn => {
+    btn.addEventListener('click', cerrarDrawersMoviles);
+  });
 
   window.addEventListener('resize', () => {
     if (window.innerWidth > 760) cerrarDrawersMoviles();

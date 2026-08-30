@@ -7,63 +7,67 @@
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="theme-dark">
+<body class="landing-body theme-dark">
 
-  <!-- BARRA DE NAVEGACIÓN PRINCIPAL -->
-  <header class="landing-nav">
-    <div class="brand-container">
-      <div class="brand-logo-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><line x1="3" y1="21" x2="21" y2="21"></line><line x1="3" y1="10" x2="21" y2="10"></line><polyline points="12 3 2 10 22 10"></polyline><line x1="6" y1="10" x2="6" y2="21"></line><line x1="10" y1="10" x2="10" y2="21"></line><line x1="14" y1="10" x2="14" y2="21"></line><line x1="18" y1="10" x2="18" y2="21"></line></svg>
+  <!-- ENCABEZADO DE LA APLICACIÓN (NOTHING STYLE) -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-area">
+        <div class="bank-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="21" x2="21" y2="21"></line><line x1="3" y1="10" x2="21" y2="10"></line><polyline points="12 3 2 10 22 10"></polyline><line x1="6" y1="10" x2="6" y2="21"></line><line x1="10" y1="10" x2="10" y2="21"></line><line x1="14" y1="10" x2="14" y2="21"></line><line x1="18" y1="10" x2="18" y2="21"></line></svg>
+        </div>
+        <div>
+          <h2>
+            <span class="brand-full">Banco de Crédito HA — Core Transaccional</span>
+            <span class="brand-short">Banco HA</span>
+          </h2>
+          <p class="subtitle">Demostración de Alta Disponibilidad con SQL Server Always On</p>
+        </div>
       </div>
-      <div>
-        <h1 class="brand-title">Banco de Crédito HA</h1>
-        <p class="brand-subtitle">Core Transaccional & Always On</p>
-      </div>
+
+      <!-- Enlaces de navegación desktop -->
+      <nav class="nav-links-desktop" aria-label="Navegación principal">
+        <a href="#objetivo">Objetivo</a>
+        <a href="#arquitectura">Arquitectura</a>
+        <a href="#failover">Cómo Funciona</a>
+      </nav>
     </div>
 
-    <!-- Enlaces de navegación -->
-    <nav id="nav-links" class="nav-menu" aria-label="Navegación principal">
-      <a href="#objetivo">Objetivo</a>
-      <a href="#arquitectura">Arquitectura</a>
-      <a href="#failover">Cómo Funciona</a>
-      <a href="demo.html" class="nav-demo-link">Demostración</a>
-    </nav>
-
-    <!-- Acciones de cabecera -->
-    <div class="nav-actions">
+    <div class="header-right">
       <button id="btn-toggle-theme" class="icon-button" type="button" aria-label="Cambiar tema de color" title="Alternar modo claro / oscuro">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       </button>
-      <a href="demo.html" class="btn-primary">
-        <span>Iniciar Demostración</span>
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+
+      <a href="demo.html" class="btn-primary header-cta-btn">
+        <span class="btn-text-full">Abrir Demo</span>
+        <span class="btn-text-short">Demo</span>
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
       </a>
-      <button id="btn-menu-toggle" class="icon-button mobile-menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-      </button>
     </div>
   </header>
 
   <main>
     <!-- HERO SECTION -->
     <section class="hero-section">
-      <div class="hero-text-content">
-        <div class="hero-badge">
+      <div class="hero-content">
+        <div class="eyebrow-badge">
           <span class="status-dot"></span>
-          <span>Alta Disponibilidad Bancaria · RTO &lt; 5s · RPO = 0</span>
+          <span>SISTEMA OPERATIVO ALWAYSON · RTO &lt; 5s · RPO = 0</span>
         </div>
-        <h2 class="hero-title">Tolerancia a fallos y continuidad transaccional de grado bancario</h2>
+        <h1 class="hero-title">
+          Tolerancia a fallos y <span class="red-accent">continuidad transaccional</span> de grado bancario
+        </h1>
         <p class="hero-desc">
-          Plataforma interactiva para la validación y demostración de clústeres <strong>SQL Server Always On Availability Groups</strong>. Descubre cómo dos servidores físicos y un <strong>Listener virtual</strong> garantizan cero pérdida de transacciones y failover transparente ante caídas del servidor principal.
+          Plataforma interactiva para la validación y demostración de clústeres <strong>SQL Server Always On</strong>. Descubre cómo dos servidores físicos y un <strong>Listener virtual</strong> garantizan cero pérdida de transacciones y conmutación transparente frente a incidentes en el servidor primario.
         </p>
         <div class="hero-actions">
-          <a href="demo.html" class="btn-primary">
+          <a href="demo.html" class="btn-primary" style="padding: 11px 22px; font-size: 0.82rem;">
             <span>Iniciar Demostración Interactiva</span>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </a>
-          <a href="#arquitectura" class="btn-secondary">
+          <a href="#arquitectura" class="btn-secondary" style="padding: 11px 18px; font-size: 0.82rem;">
             <span>Explorar Arquitectura</span>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </a>
         </div>
       </div>
@@ -72,226 +76,241 @@
       <aside class="hero-preview-card" aria-label="Estado en tiempo real del clúster">
         <div class="preview-header">
           <div>
-            <span class="preview-node-title">Clúster Monitoreado</span>
-            <h4>BancoHA-Cluster.local</h4>
+            <span class="label">Clúster Monitoreado</span>
+            <h4 style="font-size: 1.05rem; margin-top: 2px;">BancoHA-Cluster.local</h4>
           </div>
-          <span class="badge-pill online">
+          <div class="badge-pill online">
             <span class="status-dot"></span>
-            <span>SALUDABLE</span>
-          </span>
+            <span>SISTEMA SALUDABLE</span>
+          </div>
         </div>
 
         <div class="preview-cluster-grid">
           <div class="preview-node primary">
-            <div class="preview-node-title">Nodo Activo (01)</div>
-            <div class="preview-node-name">LAPTOP-01</div>
+            <span class="node-tag">Nodo Activo (01)</span>
+            <h4>LAPTOP-01</h4>
             <span class="tag online">PRIMARY</span>
           </div>
           <div class="preview-node">
-            <div class="preview-node-title">Nodo Réplica (02)</div>
-            <div class="preview-node-name">LAPTOP-02</div>
+            <span class="node-tag">Nodo Réplica (02)</span>
+            <h4>LAPTOP-02</h4>
             <span class="tag online">SYNCHRONIZED</span>
           </div>
         </div>
 
         <div class="preview-listener-box">
           <div>
-            <strong>VNN Listener:</strong> <code>AG-BANCO-LISTENER</code>
+            <span style="color: var(--muted); font-size: 0.72rem; display: block; text-transform: uppercase; font-weight: 750;">Punto de Acceso Virtual (VNN)</span>
+            <code>AG-BANCO-LISTENER:1433</code>
           </div>
-          <div>
-            <span>Latencia:</span> <strong id="hero-live-latency" style="color: var(--green); font-family: var(--font-mono);">42 ms</strong>
+          <div style="text-align: right;">
+            <span style="color: var(--muted); font-size: 0.72rem; display: block; text-transform: uppercase; font-weight: 750;">Latencia</span>
+            <strong id="hero-live-latency" style="color: var(--green); font-family: var(--font-mono); font-size: 0.95rem;">42 ms</strong>
           </div>
         </div>
       </aside>
     </section>
 
     <!-- SECCIÓN 1: OBJETIVO DEL PROYECTO -->
-    <section id="objetivo" class="section-container">
-      <div class="section-header">
-        <p class="section-eyebrow">Misión Crítica</p>
+    <section id="objetivo" class="section-wrapper">
+      <div class="section-head">
+        <span class="section-eyebrow">Misión Crítica</span>
         <h2 class="section-title">Objetivo del Proyecto</h2>
         <p class="section-desc">
-          Construir una infraestructura bancaria resiliente capaz de sostener transferencias monetarias continuas sin interrupción de servicio ni discrepancias en los balances financieros.
+          Garantizar la disponibilidad 24/7 y la resiliencia operativa del núcleo transaccional mediante replicación síncrona en dos equipos portátiles físicos configurados como nodos de alta disponibilidad.
         </p>
       </div>
 
       <div class="pillars-grid">
         <article class="pillar-card">
-          <div class="pillar-icon">💻</div>
+          <div class="pillar-icon-box">💻</div>
           <h3>Laptop 1: Servidor Primario</h3>
           <p>
-            Aloja la instancia principal de SQL Server donde se canalizan todas las operaciones de lectura y escritura. Mantiene una sesión síncrona permanente con la réplica secundaria para garantizar que cada registro se duplique en disco antes de la confirmación al usuario.
+            Aloja la instancia principal de SQL Server donde se procesan todas las operaciones de lectura y escritura. Sincroniza cada bloque del Transaction Log en la réplica secundaria antes de emitir la confirmación (COMMIT) al cliente bancario.
           </p>
         </article>
 
         <article class="pillar-card">
-          <div class="pillar-icon">🔄</div>
+          <div class="pillar-icon-box">🔄</div>
           <h3>Laptop 2: Réplica Secundaria</h3>
           <p>
-            Opera en modo de compromiso síncrono (Synchronous-Commit). Recibe y endurece los registros del Transaction Log en tiempo real. Permanece lista para una conmutación inmediata con RPO igual a cero (cero pérdida de datos).
+            Opera en modo de compromiso síncrono (Synchronous-Commit). Permanece en estado pasivo-caliente con endurecimiento permanente de transacciones en memoria y disco, lista para asumir el rol primario con RPO = 0 (cero pérdida de datos).
           </p>
         </article>
 
         <article class="pillar-card">
-          <div class="pillar-icon">🌐</div>
+          <div class="pillar-icon-box">🌐</div>
           <h3>Listener Virtual Inteligente</h3>
           <p>
-            Provee un Nombre de Red Virtual (VNN) y una dirección IP única para clientes y aplicaciones web. Cuando ocurre una conmutación, el Listener redirige el tráfico hacia el nuevo servidor primario sin necesidad de modificar configuraciones de red en los clientes.
+            Nombre de red virtual (VNN) y dirección IP única accesible para la capa web. Abstrae la topología física y enruta automáticamente las conexiones hacia el nodo que tenga el rol PRIMARY activo en cualquier momento.
           </p>
         </article>
       </div>
     </section>
 
     <!-- SECCIÓN 2: ARQUITECTURA Y CAPAS TÉCNICAS -->
-    <section id="arquitectura" class="section-container" style="background: var(--bg-surface-raised); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);">
-      <div class="section-header">
-        <p class="section-eyebrow">Ingeniería del Sistema</p>
+    <section id="arquitectura" class="section-wrapper" style="border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface-soft);">
+      <div class="section-head">
+        <span class="section-eyebrow">Ingeniería del Sistema</span>
         <h2 class="section-title">Arquitectura en Tres Capas</h2>
         <p class="section-desc">
-          Integración armónica entre la infraestructura de clúster, el motor relacional transaccional y la capa de observabilidad en tiempo real.
+          Integración rígida entre el clúster de infraestructura, el modelo relacional transaccional y la capa de observabilidad en tiempo real.
         </p>
       </div>
 
       <div class="layers-grid">
         <article class="layer-card">
-          <span class="layer-number">CAPA 01 · INFRAESTRUCTURA</span>
+          <span class="layer-header-num">// 01_INFRAESTRUCTURA</span>
           <h3>Always On & Quórum WSFC</h3>
           <p>
-            Basado en Windows Server Failover Clustering con testigo de recursos compartidos (File Share Witness). Resuelve escenarios de partición de red (Split-Brain) asignando votos determinísticos entre ambos servidores físicos.
+            Clúster de conmutación por error de Windows Server (WSFC) configurado con Testigo de recurso compartido (File Share Witness) para evitar escenarios de división de cerebro (Split-Brain) y garantizar elecciones deterministas.
           </p>
           <div class="layer-tags">
-            <span class="code-pill">WSFC Cluster</span>
-            <span class="code-pill">Multi-Subnet</span>
-            <span class="code-pill">Quorum Witness</span>
+            <span class="tech-tag">WSFC Cluster</span>
+            <span class="tech-tag">File Share Witness</span>
+            <span class="tech-tag">MultiSubnetFailover</span>
           </div>
         </article>
 
         <article class="layer-card">
-          <span class="layer-number">CAPA 02 · MOTOR RELACIONAL</span>
+          <span class="layer-header-num">// 02_TRANSACCIONAL</span>
           <h3>Transaccionalidad ACID Pura</h3>
           <p>
-            Procedimientos almacenados que encapsulan débitos y créditos en bloques atómicos <code>BEGIN TRANSACTION</code>. Cualquier inconsistencia o falta de saldo dispara <code>ROLLBACK</code> inmediato manteniendo la integridad contable.
+            Procedimientos almacenados que encapsulan débitos y créditos en bloques atómicos <code>BEGIN TRAN</code>. Toda excepción dispara <code>ROLLBACK</code> automático, asegurando que ningún balance quede corrupto o con saldo negativo.
           </p>
           <div class="layer-tags">
-            <span class="code-pill">BEGIN TRAN</span>
-            <span class="code-pill">COMMIT / ROLLBACK</span>
-            <span class="code-pill">Isolation Level</span>
+            <span class="tech-tag">sp_TransferirDinero</span>
+            <span class="tech-tag">BEGIN TRANSACTION</span>
+            <span class="tech-tag">COMMIT / ROLLBACK</span>
           </div>
         </article>
 
         <article class="layer-card">
-          <span class="layer-number">CAPA 03 · OBSERVABILIDAD</span>
-          <h3>Visualizador y Telemetría</h3>
+          <span class="layer-header-num">// 03_OBSERVABILIDAD</span>
+          <h3>Consola y Telemetría Client-Side</h3>
           <p>
-            Interfaz gráfica interactiva para monitorear el estado de salud de los nodos, latencias de red en milisegundos, auditoría de transacciones confirmadas y orquestación de pruebas de conmutación en caliente.
+            Interfaz gráfica interactiva para monitorear el estado del clúster, simular caídas forzadas con ventana de 2.5s de reintentos, generar tráfico masivo continuo y auditar transferencias en vivo con persistencia local.
           </p>
           <div class="layer-tags">
-            <span class="code-pill">Client-Side Engine</span>
-            <span class="code-pill">Live Telemetry</span>
-            <span class="code-pill">Dark Fintech UI</span>
+            <span class="tech-tag">Client-Side Engine</span>
+            <span class="tech-tag">localStorage State</span>
+            <span class="tech-tag">Nothing Visual UI</span>
           </div>
         </article>
       </div>
 
-      <!-- DIAGRAMA CONCEPTUAL -->
-      <div class="arch-diagram-wrapper">
-        <div class="diagram-flow">
-          <div class="diagram-item">
-            <h4>1. Aplicación / Usuario</h4>
-            <p>Emite orden de transferencia</p>
-          </div>
-          <div class="diagram-arrow">➔</div>
-          <div class="diagram-item highlight">
-            <h4>2. Listener Virtual</h4>
-            <p>Resuelve nodo primario activo</p>
-          </div>
-          <div class="diagram-arrow">➔</div>
-          <div class="diagram-item">
-            <h4>3. LAPTOP-01 / LAPTOP-02</h4>
-            <p>Commit atómico síncrono</p>
-          </div>
+      <!-- DIAGRAMA CONCEPTUAL NOTHING -->
+      <div class="diagram-box">
+        <div class="diagram-step-box">
+          <h4>1. Cliente / Consola</h4>
+          <p>Emite orden de transferencia</p>
+        </div>
+        <div class="diagram-arrow">➔</div>
+        <div class="diagram-step-box highlight">
+          <h4>2. Listener Virtual</h4>
+          <p>Resuelve nodo primario activo</p>
+        </div>
+        <div class="diagram-arrow">➔</div>
+        <div class="diagram-step-box">
+          <h4>3. Servidores Físicos</h4>
+          <p>LAPTOP-01 ⇄ LAPTOP-02 (Sync)</p>
         </div>
       </div>
     </section>
 
     <!-- SECCIÓN 3: CÓMO FUNCIONA EL FAILOVER -->
-    <section id="failover" class="section-container">
-      <div class="section-header">
-        <p class="section-eyebrow">Tolerancia a Fallos</p>
-        <h2 class="section-title">¿Cómo Funciona la Conmutación (Failover)?</h2>
+    <section id="failover" class="section-wrapper">
+      <div class="section-head">
+        <span class="section-eyebrow">Tolerancia a Fallos</span>
+        <h2 class="section-title">¿Cómo Funciona la Conmutación?</h2>
         <p class="section-desc">
-          Explora la secuencia interactiva de 4 fases que se ejecuta cuando el servidor primario pierde conectividad física o eléctrica.
+          Guía interactiva paso a paso de las 4 etapas del ciclo de vida de una conmutación por error ante la caída intempestiva del servidor primario.
         </p>
       </div>
 
-      <div class="failover-interactive-container">
-        <!-- Lista de Pasos Seleccionables -->
+      <div class="failover-guide-grid">
+        <!-- Pasos Seleccionables -->
         <div class="failover-steps-list">
           <div class="failover-step-card active" data-step="1">
-            <span class="step-num">01</span>
-            <div class="step-content">
+            <span class="step-number">01</span>
+            <div class="step-info">
               <h4>Fase 1: Régimen Normal</h4>
-              <p>LAPTOP-01 procesa transferencias y replica síncronamente a LAPTOP-02.</p>
+              <p>LAPTOP-01 procesa transacciones y replica síncronamente a LAPTOP-02.</p>
             </div>
           </div>
 
           <div class="failover-step-card" data-step="2">
-            <span class="step-num">02</span>
-            <div class="step-content">
+            <span class="step-number">02</span>
+            <div class="step-info">
               <h4>Fase 2: Caída del Primario</h4>
-              <p>LAPTOP-01 pierde conexión. El clúster detecta la interrupción en 2.5s.</p>
+              <p>LAPTOP-01 pierde conectividad. El clúster detecta la caída en 2.5 segundos.</p>
             </div>
           </div>
 
           <div class="failover-step-card" data-step="3">
-            <span class="step-num">03</span>
-            <div class="step-content">
+            <span class="step-number">03</span>
+            <div class="step-info">
               <h4>Fase 3: Decisión de Quórum</h4>
               <p>El quórum promueve a LAPTOP-02 y el Listener reasigna el tráfico de red.</p>
             </div>
           </div>
 
           <div class="failover-step-card" data-step="4">
-            <span class="step-num">04</span>
-            <div class="step-content">
+            <span class="step-number">04</span>
+            <div class="step-info">
               <h4>Fase 4: Continuidad Total</h4>
-              <p>Las transacciones se confirman en LAPTOP-02 sin pérdida de saldo ni datos.</p>
+              <p>Las transferencias continúan procesándose en LAPTOP-02 sin pérdida de saldo.</p>
             </div>
           </div>
         </div>
 
         <!-- Escenario Visual Dinámico -->
-        <div id="failover-visual-stage" class="failover-stage">
+        <div id="failover-visual-stage" class="failover-stage-box">
           <!-- Renderizado dinámico desde landing.js -->
         </div>
       </div>
 
-      <!-- LLAMADO A LA ACCIÓN (CTA BANNER) -->
-      <div class="cta-banner">
-        <h3>Experimenta la Alta Disponibilidad en Vivo</h3>
-        <p>
-          Ingresa al simulador transaccional client-side, envía transferencias entre cuentas de prueba y provoca una caída del servidor para comprobar la conmutación en tiempo real.
-        </p>
-        <a href="demo.html" class="btn-primary" style="padding: 12px 28px; font-size: 1rem;">
-          <span>Abrir Demostración Interactiva</span>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </a>
+      <!-- BANNER CTA FINAL NOTHING -->
+      <div class="cta-banner-nothing">
+        <div class="cta-banner-grid">
+          <div class="cta-banner-info">
+            <h3>Experimenta el Clúster en Tiempo Real</h3>
+            <p>
+              Accede al simulador interactivo client-side, envía transferencias entre perfiles y utiliza el controlador de failover para provocar caídas y validar la conmutación en vivo.
+            </p>
+            <a href="demo.html" class="btn-primary" style="padding: 12px 26px; font-size: 0.85rem;">
+              <span>Abrir Demostración Interactiva</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+          </div>
+
+          <div class="cta-banner-qr">
+            <div class="cta-qr-box">
+              <img src="assets/LogoLink.png" alt="Código QR para acceder desde el móvil" class="cta-qr-img">
+              <span class="cta-qr-label">Escanea con tu celular</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
-  <!-- PIE DE PÁGINA (FOOTER) -->
+  <!-- PIE DE PÁGINA NOTHING -->
   <footer class="landing-footer">
-    <div class="footer-content">
-      <div class="footer-credits">
-        <p><strong>Banco HA Demo</strong> — Proyecto de Administración de Bases de Datos</p>
-        <p class="footer-version">Versión 1.0.0 (Client-Side Demo)</p>
+    <div class="footer-inner">
+      <div>
+        <p><strong>Banco de Crédito HA</strong> — Demostración de Alta Disponibilidad con SQL Server Always On</p>
+        <p style="font-family: var(--font-mono); font-size: 0.72rem; margin-top: 4px;">Versión 1.0.0 (Client-Side Demo · Nothing Design System)</p>
       </div>
 
-      <div>
+      <div class="footer-links-group">
         <a href="https://github.com/rynrizn/sql-alwayson-visualizer" target="_blank" rel="noopener noreferrer" class="footer-link">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-          <span>Repositorio en GitHub: rynrizn/sql-alwayson-visualizer</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+          <span>Repositorio en GitHub</span>
+        </a>
+        <a href="https://rynrizn.github.io/sql-alwayson-visualizer/" target="_blank" rel="noopener noreferrer" class="footer-link">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span>Web en GitHub Pages</span>
         </a>
       </div>
     </div>
