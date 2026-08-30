@@ -339,11 +339,111 @@ http://localhost:3000
 
 ---
 
-## 🌿 6. Convenciones de Contribución y Git Flow
+## 🏗️ 6. Estructura del Proyecto
+
+El proyecto sigue una arquitectura desacoplada y modular dividida entre backend (Node.js/Express) y frontend (HTML5/CSS3/JavaScript Vanilla modular):
+
+```text
+banco-ha-demo/
+├── backend/
+│   ├── routes/
+│   │   ├── movimientos.js     # Endpoints para consultar cuentas e historial de transacciones
+│   │   ├── servidor.js        # Consulta @@SERVERNAME y latencia del nodo activo Always On
+│   │   └── transferencias.js  # Ejecuta sp_TransferirDinero y valida parámetros bancarios
+│   ├── services/
+│   │   └── trafico.js         # Simulador de carga continua y masiva con resiliencia ante failover
+│   ├── database.js            # Pool mssql, queries preparadas y llamadas a Stored Procedures
+│   └── server.js              # Servidor HTTP/Express, Socket.IO y loop de health-check cada 1.5s
+├── frontend/
+│   ├── assets/
+│   │   └── qr-placeholder.svg # Vector SVG reservado para visualización de cobros QR
+│   ├── css/
+│   │   └── styles.css         # Estilos inspirados en estética Nothing, variables CSS y temas
+│   ├── js/
+│   │   ├── app.js             # Inicialización y exportación global del cliente WebSocket
+│   │   ├── chat.js            # Carga de cuentas de la BD, búsqueda y gestión del historial aislado
+│   │   ├── modales.js         # Apertura y cierre de diálogos HTML5 (modal alta y visor QR)
+│   │   ├── monitor.js         # Dashboard Always On: estado de réplica, latencia y eventos en vivo
+│   │   ├── transferencias.js  # Envío de dinero desde el perfil activo hacia la cuenta destino
+│   │   └── ui.js              # Alternancia de tema (claro/oscuro) y contracción/expansión de paneles
+│   ├── favicon.ico            # Ícono oficial de la aplicación web
+│   └── index.html             # Maquetación semántica de tres columnas y modales accesibles
+├── .env.example               # Plantilla de variables de entorno para SQL Server Always On
+├── CONTRIBUTING.md            # Guía de contribución, arquitectura y especificación técnica
+├── package.json               # Dependencias y scripts de ejecución (pnpm)
+└── plan.txt                   # Plan de requerimientos e integración
+```
+
+---
+
+## 🛣️ 7. Rutas de la API y Eventos WebSocket
+
+### 7.1 Endpoints HTTP (REST API)
+
+| Método | Ruta | Parámetros / Cuerpo | Descripción |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/servidor` | Ninguno | Retorna el nodo físico activo (`@@SERVERNAME`), timestamp del motor y latencia en ms. |
+| `GET` | `/api/movimientos` | `?limite=15` *(query opcional)* | Obtiene las transacciones globales más recientes registradas en la vista `vw_UltimasTransacciones`. |
+| `GET` | `/api/movimientos/cuentas` | Ninguno | Retorna la lista de clientes y cuentas activas (`vw_CuentasClientes WHERE Estado = 1`). |
+| `GET` | `/api/movimientos/cuenta/:numeroCuenta` | `?limite=30` *(query opcional)* | Consulta el historial aislado donde la cuenta indicada figure como origen o como destino. |
+| `POST` | `/api/transferencia` | `{ cuentaOrigen, cuentaDestino, monto, descripcion }` | Ejecuta el Stored Procedure `sp_TransferirDinero` con control transaccional ACID en SQL Server. |
+| `POST` | `/api/trafico/iniciar` | `{ intervaloMs: 1000 }` *(opcional)* | Inicia la generación automática continua de transferencias entre cuentas activas al azar. |
+| `POST` | `/api/trafico/detener` | Ninguno | Detiene el servicio de simulación de tráfico masivo. |
+
+### 7.2 Eventos WebSocket en Tiempo Real (Socket.IO)
+
+* **`estado_servidor`**: Emitido periódicamente cada 1500 ms por el loop de comprobación. Notifica si el Listener está `online`, el nombre del servidor primario, rol y latencia; o el estado de conmutación si ocurre una caída de réplica.
+* **`nuevo_movimiento`**: Emitido instantáneamente tras completarse una transferencia (manual o simulada) para alimentar la tabla de operaciones en vivo.
+* **`estado_trafico`**: Notifica a todas las sesiones conectadas si el generador de tráfico está activo o inactivo.
+* **`trafico_tick`**: Notifica el acumulador de transacciones generadas en la simulación actual.
+
+---
+
+## 📱 8. Guía de Uso de la Aplicación
+
+1. **Selección de Perfiles (Columna Izquierda):**
+   * Al iniciar, la aplicación carga automáticamente las cuentas existentes en la base de datos `BancoHA_DB`.
+   * Haz clic sobre cualquier cliente para seleccionarlo como **perfil activo**. La interfaz actualizará el avatar, nombre, cuenta y saldo disponible en tiempo real.
+   * Utiliza la barra de búsqueda superior para filtrar perfiles rápidamente por nombre o número de cuenta.
+
+2. **Envío de Dinero e Historial Aislado (Columna Central):**
+   * El panel central actúa como consola transaccional estilo mensajería/banco.
+   * Cada perfil muestra exclusivamente sus propios movimientos:
+     * **Envíos (Rojo / Salida):** Operaciones donde la cuenta activa es el emisor.
+     * **Recepciones (Verde / Entrada):** Operaciones donde la cuenta activa es el receptor.
+   * En la barra inferior, selecciona la cuenta destinataria (el selector excluye automáticamente la cuenta activa), ingresa el monto, un concepto opcional y presiona **"ENVIAR DINERO"**.
+
+3. **Monitoreo del Clúster Always On (Columna Derecha):**
+   * La tarjeta superior muestra qué servidor físico (ej. `LAPTOP-01` o `LAPTOP-02`) está respondiendo consultas a través del Listener de Always On y la latencia en milisegundos.
+   * **Prueba de Failover:** Presiona **"⚡ SIMULAR TRÁFICO"** para iniciar transacciones automatizadas continuas. Si desconectas el cable de red o apagas el nodo primario de SQL Server, observarás cómo el indicador cambia a *"FAILOVER ACTIVO / CONMUTACIÓN EN PROCESO"* y, tras la elección del nuevo primario, el sistema reanuda las transferencias sin reiniciar el backend ni recargar el navegador.
+
+4. **Controles de Interfaz, Tema y Paneles:**
+   * **Modo Claro / Oscuro (`◐`):** Botón en la cabecera superior para alternar instantáneamente entre la estética Nothing luminosa y la variante oscura de alto contraste. La preferencia se guarda en el almacenamiento local (`localStorage`).
+   * **Visor de Código QR (`⌘`):** Abre un diálogo accesible en pantalla completa que contiene el recurso QR preparado (`frontend/assets/qr-placeholder.svg`), reemplazable por cualquier comprobante o cobro dinámico sin alterar el flujo.
+   * **Preparación de Nuevo Perfil (`+`):** Ubicado en la cabecera del panel de perfiles. Abre un modal para ingresar datos de un nuevo cliente. Este modal valida el formulario visualmente y protege la base de datos no ejecutando escrituras hasta que se habilite una ruta de alta autorizada.
+   * **Colapso / Expansión de Paneles (`‹` / `›`):** Permite contraer la lista de clientes o expandir el monitor transaccional para maximizar el área de trabajo en pantallas reducidas o laptops.
+
+---
+
+## 📝 9. Registro de Cambios Realizados
+
+A continuación se resumen las mejoras implementadas de acuerdo con la planificación técnica:
+
+* **Perfiles respaldados por la base de datos:** Se eliminaron las cuentas simuladas en código. La lista lateral de clientes se nutre exclusivamente de la vista SQL `vw_CuentasClientes`.
+* **Historial transaccional aislado por cuenta:** Implementación de la ruta `/api/movimientos/cuenta/:numeroCuenta` y filtrado bidireccional (`CuentaOrigen` / `CuentaDestino`) para que cada cliente consulte únicamente su actividad.
+* **Separación de responsabilidades con Modal de Alta:** El formulario para nuevos usuarios fue extraído de la barra lateral hacia un modal desacoplado (`#user-modal`) que evita sobrecargar la interfaz y opera en modo visual protegido sin alterar la base de datos.
+* **Visor de Código QR integrado:** Incorporación de ventana modal para visualización de pagos QR reutilizando la estructura de diálogos HTML5 y un vector SVG reemplazable.
+* **Favicon bancario oficial:** Agregado de `frontend/favicon.ico` para la pestaña del navegador.
+* **Diseño Nothing responsivo y controles colapsables:** Nueva distribución de 3 columnas con soporte para dispositivos móviles, alternancia fluida de paneles laterales y soporte completo de temas claro y oscuro.
+* **Arquitectura frontend modular:** Desacoplamiento de la lógica JavaScript en módulos específicos (`app.js`, `chat.js`, `modales.js`, `monitor.js`, `transferencias.js`, `ui.js`).
+
+---
+
+## 🌿 10. Convenciones de Contribución y Git Flow
 
 Para mantener un historial limpio y estructurado, sigue este flujo de trabajo:
 
-### 6.1 Ramas (Branches)
+### 10.1 Ramas (Branches)
 * `main`: Código estable y probado para la demostración.
 * Crea ramas descriptivas para cada cambio:
   ```bash
@@ -354,7 +454,7 @@ Para mantener un historial limpio y estructurado, sigue este flujo de trabajo:
   git checkout -b fix/descripcion-del-bug
   ```
 
-### 6.2 Formato de Commits (Conventional Commits)
+### 10.2 Formato de Commits (Conventional Commits)
 Usa prefijos claros en tus mensajes:
 * `feat:` Nueva funcionalidad (ej. `feat: agregar vista de cuentas en frontend`).
 * `fix:` Corrección de error (ej. `fix: ajustar timeout de reconexion mssql`).
@@ -362,7 +462,7 @@ Usa prefijos claros en tus mensajes:
 * `docs:` Cambios en documentación o comentarios.
 * `refactor:` Reestructuración de código sin alterar comportamiento.
 
-### 6.3 Envío de Cambios (Pull Requests)
+### 10.3 Envío de Cambios (Pull Requests)
 1. Verifica que el servidor levante sin errores (`pnpm dev`).
 2. Haz commit de tus cambios:
    ```bash
