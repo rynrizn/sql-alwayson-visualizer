@@ -240,6 +240,63 @@ async function obtenerNumerosCuentasActivas() {
   return cuentas.map((cuenta) => cuenta.NumeroCuenta);
 }
 
+/**
+ * 5. REGISTRAR UN NUEVO CLIENTE Y SU CUENTA BANCARIA
+ */
+async function crearClienteYCuenta({ nombre, apellido, ci, saldoInicial = 0 }) {
+  const conn = await getPool();
+  const request = conn.request();
+
+  request.input('nombre', sql.VarChar(50), String(nombre || '').trim());
+  request.input('apellido', sql.VarChar(50), String(apellido || '').trim());
+  request.input('ci', sql.VarChar(20), String(ci || '').trim());
+  request.input('saldoInicial', sql.Decimal(18, 2), Math.max(0, parseFloat(saldoInicial) || 0));
+
+  const result = await request.query(`
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        IF EXISTS (SELECT 1 FROM Clientes WHERE CI = @ci)
+        BEGIN
+            RAISERROR('El número de CI ya se encuentra registrado.', 16, 1);
+        END
+
+        INSERT INTO Clientes (CI, Nombre, Apellido)
+        VALUES (@ci, @nombre, @apellido);
+
+        DECLARE @NuevoIdCliente INT = SCOPE_IDENTITY();
+        DECLARE @NuevoNumeroCuenta VARCHAR(20);
+
+        SELECT @NuevoNumeroCuenta = CAST(ISNULL(MAX(CAST(NumeroCuenta AS BIGINT)), 1000000000) + 1 AS VARCHAR(20))
+        FROM Cuentas;
+
+        INSERT INTO Cuentas (IdCliente, IdTipoCuenta, NumeroCuenta, Saldo)
+        VALUES (@NuevoIdCliente, 1, @NuevoNumeroCuenta, @saldoInicial);
+
+        COMMIT TRANSACTION;
+
+        SELECT 
+          c.IdCliente,
+          c.CI,
+          c.Nombre,
+          c.Apellido,
+          cu.IdCuenta,
+          cu.NumeroCuenta,
+          'Ahorro' AS TipoCuenta,
+          cu.Saldo,
+          cu.Estado
+        FROM Clientes c
+        INNER JOIN Cuentas cu ON c.IdCliente = cu.IdCliente
+        WHERE c.IdCliente = @NuevoIdCliente;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+  `);
+
+  return result.recordset[0];
+}
+
 // Exportar las funciones para que puedan ser usadas por las rutas de Express y servicios
 module.exports = {
   getPool,
@@ -248,5 +305,6 @@ module.exports = {
   obtenerUltimosMovimientos,
   obtenerMovimientosPorCuenta,
   obtenerCuentasClientes,
-  obtenerNumerosCuentasActivas
+  obtenerNumerosCuentasActivas,
+  crearClienteYCuenta
 };

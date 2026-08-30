@@ -5,6 +5,9 @@ window.estadoBanco = {
   nombreActivo: null
 };
 
+window.inicializarPerfiles = inicializarPerfiles;
+window.seleccionarPerfil = seleccionarPerfil;
+
 let cargandoPerfiles = false;
 
 document.addEventListener('DOMContentLoaded', () => {

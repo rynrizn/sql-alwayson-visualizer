@@ -204,29 +204,29 @@
 
   </div>
 
-  <!-- MODAL DE ALTA PREPARADO PARA UNA FUTURA RUTA DE REGISTRO -->
+  <!-- MODAL DE ALTA DE NUEVO USUARIO Y CUENTA -->
   <dialog id="user-modal" class="app-modal" aria-labelledby="user-modal-title">
     <form id="form-new-user" class="modal-card" novalidate>
       <div class="modal-header">
         <div>
           <p class="eyebrow">NUEVO PERFIL</p>
-          <h3 id="user-modal-title">Preparar usuario</h3>
+          <h3 id="user-modal-title">Registrar usuario</h3>
         </div>
         <button class="icon-button" type="button" data-close-modal="user-modal" aria-label="Cerrar">
           <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
-      <p class="modal-notice">Este formulario es visual: aún no existe una ruta de alta y no se enviarán datos a la base de datos.</p>
+      <p class="modal-notice">Ingresa los datos del cliente para aperturar su cuenta bancaria en SQL Server.</p>
       <div class="form-grid">
-        <label>Nombre<input id="new-user-name" name="nombre" type="text" required autocomplete="given-name"></label>
-        <label>Apellido<input id="new-user-lastname" name="apellido" type="text" required autocomplete="family-name"></label>
-        <label>CI<input id="new-user-ci" name="ci" type="text" required inputmode="numeric"></label>
-        <label>Saldo inicial<input id="new-user-balance" name="saldo" type="number" min="0" step="0.01" value="0" required></label>
+        <label>Nombre<input id="new-user-name" name="nombre" type="text" required autocomplete="given-name" placeholder="Ej. Ana"></label>
+        <label>Apellido<input id="new-user-lastname" name="apellido" type="text" required autocomplete="family-name" placeholder="Ej. Silva"></label>
+        <label>CI<input id="new-user-ci" name="ci" type="text" required inputmode="numeric" placeholder="Ej. 5867890"></label>
+        <label>Saldo inicial ($)<input id="new-user-balance" name="saldo" type="number" min="0" step="0.01" value="1000" required></label>
       </div>
       <p id="new-user-feedback" class="form-feedback" role="status"></p>
       <div class="modal-actions">
         <button class="btn-secondary" type="button" data-close-modal="user-modal">Cancelar</button>
-        <button class="btn-send" type="submit">Guardar cuando esté disponible</button>
+        <button class="btn-send" type="submit" id="btn-save-new-user">Guardar Usuario</button>
       </div>
     </form>
   </dialog>

@@ -61,4 +61,37 @@ router.get('/cuentas', async (req, res) => {
   }
 });
 
+// POST /api/movimientos/cliente - Registra un nuevo cliente y su cuenta en SQL Server
+router.post('/cliente', async (req, res) => {
+  try {
+    const { nombre, apellido, ci, saldo } = req.body;
+    if (!nombre || !apellido || !ci) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nombre, Apellido y CI son obligatorios'
+      });
+    }
+
+    const nuevoCliente = await db.crearClienteYCuenta({
+      nombre,
+      apellido,
+      ci,
+      saldoInicial: parseFloat(saldo) || 0
+    });
+
+    res.json({
+      success: true,
+      data: nuevoCliente,
+      mensaje: 'Cliente y cuenta creados exitosamente'
+    });
+  } catch (err) {
+    console.error('Error al registrar nuevo cliente:', err);
+    res.status(500).json({
+      success: false,
+      error: 'No se pudo registrar el cliente',
+      detalle: err.message
+    });
+  }
+});
+
 module.exports = router;
