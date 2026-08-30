@@ -66,6 +66,14 @@ DB_REQUEST_TIMEOUT=5000
 
 ---
 
+## 👥 Perfiles y datos de demostración
+
+La aplicación no administra autenticación: cada cuenta activa de la vista `vw_CuentasClientes` se presenta como un **perfil de demostración**. Al seleccionar un perfil, la interfaz lo utiliza como cuenta de origen y muestra únicamente sus movimientos entrantes y salientes.
+
+Las pantallas y pruebas de esta aplicación son de lectura respecto a los perfiles existentes. El formulario visual para agregar un usuario está preparado para una futura integración, pero no envía ni modifica datos en SQL Server mientras no exista una ruta de alta aprobada.
+
+---
+
 ## 🗄️ 4. Base de Datos Local de Desarrollo (`BancoHA_DB`)
 
 Si vas a desarrollar y aún no estás conectado al clúster Always On, ejecuta el siguiente script en tu SSMS para crear la base de datos `BancoHA_DB`, las tablas relacionales, índices, datos de prueba, vistas y el procedimiento almacenado `sp_TransferirDinero`:
