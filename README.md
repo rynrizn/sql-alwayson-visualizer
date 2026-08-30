@@ -27,7 +27,7 @@ El repositorio cuenta con dos guías especializadas según el perfil:
 
 ---
 
-## 🚀 Inicio Rápido
+## 🚀 Inicio Rápido (Servidor Completo)
 
 1. Instalar dependencias:
    ```bash
@@ -43,6 +43,20 @@ El repositorio cuenta con dos guías especializadas según el perfil:
    ```
 4. Acceder en el navegador:
    [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🌐 Demostración 100% Client-Side (Rama `demo-web`)
+
+Para presentaciones o evaluaciones en cualquier dispositivo sin requerir Node.js ni SQL Server en ejecución:
+
+1. Cambiar a la rama de demostración:
+   ```bash
+   git checkout demo-web
+   ```
+2. Abrir directamente en el navegador:
+   * **Landing Informativa:** Abre [`demo-web/index.html`](./demo-web/index.html) para explorar la presentación del clúster, objetivos y la guía interactiva del failover.
+   * **Consola Interactiva:** Abre [`demo-web/demo.html`](./demo-web/demo.html) para operar la consola transaccional, simular la conmutación por error (2.5 s) y generar tráfico masivo continuo con persistencia local en `localStorage`.
 
 ---
 

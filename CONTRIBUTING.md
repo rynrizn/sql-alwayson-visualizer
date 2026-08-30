@@ -444,7 +444,8 @@ A continuación se resumen las mejoras implementadas de acuerdo con la planifica
 Para mantener un historial limpio y estructurado, sigue este flujo de trabajo:
 
 ### 10.1 Ramas (Branches)
-* `main`: Código estable y probado para la demostración.
+* `main`: Código estable del sistema con backend Node.js, WebSockets y conexión a SQL Server Always On.
+* `demo-web`: Versión desacoplada 100% client-side (HTML5, CSS y Vanilla JS) con simulación en memoria/localStorage para demostraciones sin backend.
 * Crea ramas descriptivas para cada cambio:
   ```bash
   # Para nuevas funcionalidades:
