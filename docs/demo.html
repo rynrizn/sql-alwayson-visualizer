@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banco HA — Demostración Interactiva Always On</title>
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="demo-body theme-dark">
+
+  <!-- ENCABEZADO DE LA DEMOSTRACIÓN -->
+  <header class="demo-header">
+    <div class="header-left">
+      <!-- Botón móvil para desplegar perfiles -->
+      <button id="btn-mobile-sidebar" class="icon-button mobile-toggle-btn" type="button" aria-label="Abrir panel de perfiles" title="Perfiles">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      </button>
+
+      <a href="index.html" class="btn-back-landing" title="Regresar a la presentación">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <span>Presentación</span>
+      </a>
+
+      <div class="brand-container">
+        <div class="brand-logo-icon" aria-hidden="true" style="width: 32px; height: 32px;">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="21" x2="21" y2="21"></line><line x1="3" y1="10" x2="21" y2="10"></line><polyline points="12 3 2 10 22 10"></polyline><line x1="6" y1="10" x2="6" y2="21"></line><line x1="10" y1="10" x2="10" y2="21"></line><line x1="14" y1="10" x2="14" y2="21"></line><line x1="18" y1="10" x2="18" y2="21"></line></svg>
+        </div>
+        <div>
+          <h2 style="font-size: 0.95rem; font-weight: 700;">Banco de Crédito HA</h2>
+          <p style="font-size: 0.72rem; color: var(--text-muted);">Consola Transaccional Always On</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div id="header-status-badge" class="badge-pill online">
+        <span class="status-dot"></span>
+        <span id="badge-text">ACTIVO: LAPTOP-01</span>
+      </div>
+
+      <!-- Botón móvil para desplegar monitoreo de clúster -->
+      <button id="btn-mobile-monitor" class="icon-button mobile-toggle-btn" type="button" aria-label="Abrir monitoreo del clúster" title="Monitoreo del Clúster">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+      </button>
+
+      <button id="btn-open-qr" class="icon-button" type="button" aria-label="Compartir enlace / QR" title="Código QR y enlace">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="7" y1="7" x2="7.01" y2="7"></line><line x1="17" y1="7" x2="17.01" y2="7"></line><line x1="7" y1="17" x2="7.01" y2="17"></line><line x1="17" y1="17" x2="17.01" y2="17"></line></svg>
+      </button>
+
+      <button id="btn-toggle-theme" class="icon-button" type="button" aria-label="Cambiar tema de color" title="Alternar modo claro / oscuro">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- TELÓN DE FONDO PARA DISPOSITIVOS MÓVILES -->
+  <div id="mobile-backdrop" class="mobile-backdrop" aria-hidden="true"></div>
+
+  <!-- CONTENEDOR PRINCIPAL (3 COLUMNAS) -->
+  <div class="main-layout">
+
+    <!-- COLUMNA 1: PERFILES DISPONIBLES EN LOCALSTORAGE -->
+    <aside class="sidebar-clients" aria-label="Perfiles disponibles">
+      <div class="panel-header">
+        <h3>Perfiles</h3>
+        <div class="panel-actions">
+          <span class="counter-badge" id="total-clientes">4</span>
+          <button id="btn-toggle-sidebar" class="icon-button" type="button" aria-label="Contraer perfiles" title="Contraer perfiles">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button id="btn-add-user" class="icon-button" type="button" aria-label="Crear nuevo contacto" title="Añadir contacto">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="search-box">
+        <input type="text" id="input-buscar-perfil" placeholder="Buscar perfil o cuenta..." autocomplete="off">
+      </div>
+
+      <ul id="lista-clientes" class="client-list">
+        <!-- Renderizado dinámico desde state.js -->
+      </ul>
+    </aside>
+
+    <!-- COLUMNA 2: ÁREA TRANSACCIONAL ESTILO CHAT -->
+    <section class="chat-viewport" aria-label="Consola de transferencias">
+      <div class="chat-header">
+        <div class="recipient-info">
+          <div class="avatar" id="current-profile-avatar">CG</div>
+          <div>
+            <h3 id="current-profile-name">Carlos Gómez</h3>
+            <p id="current-profile-account">Cuenta: 10001 · Caja de Ahorro</p>
+          </div>
+        </div>
+        <div class="origin-account-info">
+          <span>Saldo disponible: <strong id="current-profile-balance">Bs 5.450,00</strong></span>
+        </div>
+      </div>
+
+      <!-- Historial de mensajes y movimientos -->
+      <div id="chat-messages" class="chat-messages">
+        <!-- Renderizado dinámico de transferencias -->
+      </div>
+
+      <!-- Formulario para enviar dinero -->
+      <form id="form-transferencia" class="chat-input-bar">
+        <select id="input-destino" aria-label="Cuenta destinataria" required>
+          <option value="">Destino</option>
+        </select>
+        <input 
+          type="number" 
+          id="input-monto" 
+          placeholder="Monto ($)" 
+          step="0.01" 
+          min="1" 
+          required 
+          autocomplete="off"
+        />
+        <input 
+          type="text" 
+          id="input-descripcion" 
+          placeholder="Concepto de transferencia" 
+          value="Transferencia inmediata"
+        />
+        <button type="submit" id="btn-enviar-dinero" class="btn-send">
+          <span>ENVIAR DINERO</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </form>
+    </section>
+
+    <!-- COLUMNA 3: PANEL DE MONITOREO Y SIMULACIÓN DE ALTA DISPONIBILIDAD -->
+    <aside class="monitor-dashboard" aria-label="Monitoreo del Clúster">
+      <div class="panel-header">
+        <h3>Monitoreo del Clúster</h3>
+        <button id="btn-toggle-monitor" class="icon-button" type="button" aria-label="Expandir monitoreo" title="Expandir monitoreo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+
+      <div class="monitor-top-grid">
+        <!-- Tarjeta de Estado del Servidor Activo -->
+        <div class="server-card">
+          <div class="server-card-header">
+            <span>Servidor Activo (Listener)</span>
+            <span id="health-tag" class="tag online">SALUDABLE</span>
+          </div>
+          <div class="server-card-body">
+            <h2 id="server-name-display">LAPTOP-01 (PRIMARY)</h2>
+            <div class="server-meta">
+              <div>Rol: <strong id="server-role-display">PRIMARY</strong></div>
+              <div>Latencia: <strong id="server-latency-display">45 ms</strong></div>
+            </div>
+          </div>
+          <div class="server-card-footer">
+            <small id="server-check-time">Comprobando conexión...</small>
+          </div>
+        </div>
+
+        <!-- CONTROLADOR DE CONMUTACIÓN (FAILOVER CONTROLLER) -->
+        <div class="failover-controller-box">
+          <h4>Simulador de Failover</h4>
+          <p class="failover-desc">Provoca la caída forzada de LAPTOP-01 para simular la conmutación automática de 2.5s hacia LAPTOP-02.</p>
+          <div class="failover-actions">
+            <button id="btn-provocar-caida" class="btn-failover trigger" type="button">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span>Provocar Caída de Servidor</span>
+            </button>
+            <button id="btn-restablecer-primario" class="btn-failover restore" type="button" disabled>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+              <span>Restablecer Servidor Primario</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SIMULADOR DE CARGA TRANSACCIONAL -->
+        <div class="traffic-box">
+          <h4>Tráfico Masivo Continuo</h4>
+          <p class="traffic-desc">Genera transferencias aleatorias automáticas cada 800 ms para validar el clúster bajo carga constante.</p>
+          <div class="traffic-actions">
+            <button id="btn-start-traffic" class="btn-traffic start" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>SIMULAR TRÁFICO</span>
+            </button>
+            <button id="btn-stop-traffic" class="btn-traffic stop" type="button" disabled>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect></svg>
+              <span>DETENER</span>
+            </button>
+          </div>
+          <div class="traffic-stats">
+            <span id="traffic-counter">Transacciones generadas: 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLA DE ÚLTIMAS OPERACIONES EN VIVO -->
+      <div class="live-transactions">
+        <h4>Últimas Operaciones Confirmadas</h4>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>TX #</th>
+                <th>Origen ➔ Destino</th>
+                <th>Monto</th>
+                <th>Procesador</th>
+              </tr>
+            </thead>
+            <tbody id="live-tx-tbody">
+              <!-- Renderizado dinámico desde demo.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ZONA DE REINICIO DE DEMOSTRACIÓN -->
+      <div class="reset-zone">
+        <button id="btn-reset-demo" class="btn-reset-full" type="button" title="Limpiar localStorage y restaurar cuentas iniciales">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 21h5v-5"></path></svg>
+          <span>Restablecer Datos de Demostración</span>
+        </button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- MODAL PARA REGISTRAR NUEVO CONTACTO / CUENTA -->
+  <dialog id="user-modal" class="app-modal" aria-labelledby="user-modal-title">
+    <form id="form-new-user" class="modal-card" novalidate>
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">NUEVO CONTACTO</p>
+          <h3 id="user-modal-title">Registrar contacto de prueba</h3>
+        </div>
+        <button class="icon-button" type="button" data-close-modal="user-modal" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <p class="modal-notice">Ingresa los datos para crear una nueva cuenta y poder enviarle o recibir transferencias en esta sesión.</p>
+      <div class="form-grid">
+        <label>Nombre<input id="new-user-name" name="nombre" type="text" required placeholder="Ej. Roberto"></label>
+        <label>Apellido<input id="new-user-lastname" name="apellido" type="text" placeholder="Ej. Morales"></label>
+        <label>CI / Documento<input id="new-user-ci" name="ci" type="text" required placeholder="Ej. 6891234"></label>
+        <label>Saldo Inicial ($)<input id="new-user-balance" name="saldo" type="number" min="0" step="0.01" value="1000" required></label>
+      </div>
+      <p id="new-user-feedback" class="form-feedback" role="status"></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" data-close-modal="user-modal">Cancelar</button>
+        <button class="btn-primary" type="submit" id="btn-save-new-user">Guardar Contacto</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL DE VISOR QR Y ENLACE COMPARTIBLE -->
+  <dialog id="qr-modal" class="app-modal qr-modal" aria-labelledby="qr-modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">ACCESO DIRECTO</p>
+          <h3 id="qr-modal-title">Demostración en Dispositivos</h3>
+        </div>
+        <button class="icon-button" type="button" data-close-modal="qr-modal" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="qr-image-wrapper">
+        <img class="qr-placeholder" src="assets/qr-placeholder.svg" alt="Código QR de la plataforma web">
+      </div>
+
+      <p class="modal-notice">Esta demostración es 100% client-side y funciona en cualquier navegador móvil o de escritorio sin backend.</p>
+
+      <div class="qr-link-box">
+        <input type="text" id="qr-link-input" readonly value="" />
+        <button type="button" id="btn-copy-qr-link" class="btn-secondary" title="Copiar enlace">
+          <span id="copy-qr-text">Copiar</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- SCRIPTS MODULARES CLIENT-SIDE (SIN SOCKET.IO NI NODE.JS) -->
+  <script src="js/state.js"></script>
+  <script src="js/simulation.js"></script>
+  <script src="js/demo.js"></script>
+</body>
+</html>
