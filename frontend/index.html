@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Banco HA - Demostración Clúster Always On</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -22,6 +23,7 @@
       <span id="badge-text">SISTEMA OPERATIVO</span>
     </div>
     <button id="btn-toggle-theme" class="icon-button header-button" type="button" aria-label="Activar modo oscuro" title="Cambiar tema">◐</button>
+    <button id="btn-open-qr" class="icon-button header-button" type="button" aria-label="Mostrar código QR" title="Mostrar código QR">⌘</button>
   </header>
 
   <!-- CONTENEDOR PRINCIPAL (3 COLUMNAS) -->
@@ -181,6 +183,18 @@
         <button class="btn-send" type="submit">Guardar cuando esté disponible</button>
       </div>
     </form>
+  </dialog>
+
+  <!-- VISOR QR: la imagen se podrá sustituir sin cambiar el comportamiento del modal. -->
+  <dialog id="qr-modal" class="app-modal qr-modal" aria-labelledby="qr-modal-title">
+    <section class="qr-card">
+      <button class="icon-button qr-close" type="button" data-close-modal="qr-modal" aria-label="Cerrar QR">×</button>
+      <p class="eyebrow">CÓDIGO QR</p>
+      <h3 id="qr-modal-title">Pago rápido</h3>
+      <p>Escanea este espacio cuando se cargue el QR oficial.</p>
+      <img class="qr-placeholder" src="assets/qr-placeholder.svg" alt="Espacio reservado para el código QR">
+      <small>Reemplaza <code>frontend/assets/qr-placeholder.svg</code> por la imagen final sin alterar este modal.</small>
+    </section>
   </dialog>
 
   <!-- Librería de Socket.IO provista automáticamente por el servidor Node.js -->

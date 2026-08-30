@@ -193,6 +193,16 @@ th { position: sticky; top: 0; color: var(--muted); background: var(--surface-so
 .form-feedback { min-height: 18px; color: var(--green); font-size: .76rem; }
 .modal-actions { justify-content: flex-end; }
 
+/* El visor QR se abre a pantalla completa para facilitar su lectura desde otro dispositivo. */
+.qr-modal { width: 100vw; max-width: none; height: 100dvh; max-height: none; }
+.qr-modal::backdrop { background: rgba(12, 12, 12, .82); }
+.qr-card { min-height: 100%; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 28px; color: var(--ink); text-align: center; background: var(--paper); }
+.qr-card > p:not(.eyebrow) { color: var(--muted); font-size: .84rem; }
+.qr-placeholder { width: min(74vw, 440px); aspect-ratio: 1; padding: 12px; background: #f4f4ef; border: 1px solid var(--ink); border-radius: 12px; box-shadow: 8px 8px 0 var(--accent); }
+.qr-card small { max-width: 440px; color: var(--muted); font-size: .7rem; }
+.qr-card code { color: var(--accent); }
+.qr-close { position: fixed; top: 22px; right: 22px; background: var(--surface); }
+
 /* En pantallas intermedias, el monitor conserva su protagonismo y los formularios se apilan. */
 @media (max-width: 1120px) {
   .main-layout { --sidebar-width: 230px; --monitor-width: 300px; }
