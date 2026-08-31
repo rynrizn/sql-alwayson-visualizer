@@ -1,7 +1,7 @@
 {
   "name": "Banco-ha-demo",
   "version": "1.0.0",
-  "description": "Aplicación Web de Demostración para Clúster SQL Server Always On",
+  "description": "Aplicación Web de Demostración para Clúster de Alta Disponibilidad con PostgreSQL en Ubuntu Server",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
@@ -9,8 +9,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "sql-server",
-    "always-on",
+    "postgresql",
+    "ubuntu",
+    "streaming-replication",
     "high-availability",
     "socket.io",
     "express"
@@ -29,8 +30,8 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mssql": "^12.7.0",
-    "socket.io": "^4.8.3",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "pg": "^8.13.1",
+    "socket.io": "^4.8.3"
   }
 }
