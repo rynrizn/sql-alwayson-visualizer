@@ -62,21 +62,21 @@ io.on('connection', (socket) => {
 });
 
 // POLLING LOOP DE SALUD DE BASE DE DATOS (Cada 1.5 segundos)
-// Consulta continuamente @@SERVERNAME para detectar el momento exacto del Failover
+// Consulta continuamente el nodo activo para detectar el momento exacto del Failover
 setInterval(async () => {
   try {
     const estado = await db.obtenerServidorActivo();
     
-    // Si SQL Server responde, emitir estado ONLINE
+    // Si PostgreSQL responde, emitir estado ONLINE indicando su rol (PRIMARY o STANDBY)
     io.emit('estado_servidor', {
       online: true,
       servidor: estado.servidor,
-      rol: 'PRIMARY',
+      rol: estado.rol || 'PRIMARY',
       tiempoRespuestaMs: estado.tiempoRespuestaMs,
       timestamp: estado.timestamp
     });
   } catch (err) {
-    // Si SQL Server no responde (cable desconectado), emitir estado de conmutación
+    // Si PostgreSQL no responde (conmutación / caída de red), emitir estado de conmutación
     io.emit('estado_servidor', {
       online: false,
       servidor: 'DESCONECTADO',
@@ -90,8 +90,8 @@ setInterval(async () => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log('====================================================');
-  console.log(`🏦 Sistema Web Banco HA iniciado con éxito`);
+  console.log(`🏦 Sistema Web Banco HA iniciado con éxito (PostgreSQL)`);
   console.log(`🌐 Acceso local: http://localhost:${PORT}`);
-  console.log(`📡 Conectando a Base de Datos en: ${process.env.DB_SERVER || 'localhost'}`);
+  console.log(`📡 Conectando a Base de Datos en: ${process.env.DB_HOST || process.env.DB_SERVER || 'localhost'}:${process.env.DB_PORT || 5432}`);
   console.log('====================================================');
 });

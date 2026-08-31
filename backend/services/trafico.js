@@ -88,8 +88,8 @@ class TraficoService {
       }
     } catch (err) {
       // RESILIENCIA: Si el servidor primario cae, la transacción fallará durante los ~3 segundos del corte.
-      // Atrapamos el error para que Node.js no colapse y el bucle siga intentando con el nuevo primario.
-      console.warn('⚠️ Pausa transaccional durante conmutación Always On:', err.message);
+      // Atrapamos el error para que Node.js no colapse y el bucle siga intentando con el nuevo primario en PostgreSQL.
+      console.warn('⚠️ Pausa transaccional durante conmutación en PostgreSQL:', err.message);
     }
   }
 }
