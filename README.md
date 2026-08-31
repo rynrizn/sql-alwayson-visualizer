@@ -68,6 +68,43 @@ La aplicación estará disponible en:
 
 ---
 
+## 🔌 ¿Cómo y dónde configurar la conexión a PostgreSQL?
+
+Para conectar la aplicación a tu clúster o servidor de PostgreSQL en Ubuntu Server, **únicamente debes crear y editar el archivo `.env` en la raíz del proyecto**.
+
+### 1. Archivo a modificar:
+👉 **`.env`** *(Copia de `.env.example`)*
+
+### 2. Parámetros que debes cambiar:
+
+```env
+PORT=3000
+
+# Host o IP donde se ejecuta PostgreSQL:
+# - En el mismo servidor Ubuntu local: localhost o 127.0.0.1
+# - En servidor remoto o IP virtual (VIP / HAProxy / Keepalived): ej. 192.168.1.160
+DB_HOST=localhost
+
+# Puerto TCP del servicio de PostgreSQL (predeterminado: 5432):
+DB_PORT=5432
+
+# Nombre de la base de datos creada con el script DDL (Sección 4 de CONTRIBUTING.md):
+DB_DATABASE=bancoha_db
+
+# Usuario con privilegios en PostgreSQL (predeterminado: 'postgres' o usuario de app):
+DB_USER=postgres
+
+# Contraseña establecida para el usuario en PostgreSQL:
+DB_PASSWORD=TuPassword123
+
+# Conexión cifrada SSL (mantener en false para red local sin certificados):
+DB_SSL=false
+```
+
+> 💡 **Nota de arquitectura:** El archivo `backend/database.js` lee estas variables mediante `dotenv` e inicializa automáticamente el objeto `Pool` de la librería `pg`. No es necesario modificar ningún archivo JavaScript para cambiar de base de datos, credenciales o IP del servidor.
+
+---
+
 ## 🔀 Relación con las Otras Ramas
 
 * **`main`**: Versión configurada para **Microsoft SQL Server Always On Availability Groups** en Windows Server.
