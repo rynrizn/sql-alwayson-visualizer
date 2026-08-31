@@ -1,36 +1,47 @@
-# Guía de Contribución y Configuración del Entorno — Banco HA Web
+# Guía de Contribución y Configuración del Entorno — Banco HA Web (PostgreSQL en Ubuntu)
 
-¡Bienvenido al repositorio! Esta guía detalla los prerrequisitos, pasos de instalación, configuración del entorno local y flujo de trabajo con Git para contribuir correctamente a la aplicación web de demostración del **Clúster de Alta Disponibilidad para SQL Server Always On**.
+¡Bienvenido al repositorio! Esta guía detalla los prerrequisitos, pasos de instalación, configuración del entorno local y flujo de trabajo con Git para contribuir correctamente a la aplicación web de demostración del **Clúster de Alta Disponibilidad con PostgreSQL en Ubuntu Server**.
 
 ---
 
-## 🛠️ 1. Prerrequisitos
+## 🛠️ 1. Prerrequisitos en Ubuntu Server
 
-Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas en tu equipo:
+Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas en tu servidor o máquina de desarrollo:
 
-* **Node.js** (versión 18.x o superior)
+* **Ubuntu Server 22.04 LTS o 24.04 LTS** (o cualquier distribución Linux equivalente).
+* **Node.js** (versión 18.x o superior):
+  ```bash
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt install -y nodejs
+  ```
 * **pnpm** (gestor de paquetes oficial del proyecto):
   ```bash
-  npm install -g pnpm
-  # o vía corepack:
-  corepack enable pnpm
+  sudo npm install -g pnpm
   ```
-* **Git** configurado en tu terminal.
-* **SQL Server** (instancia local para desarrollo o acceso a la IP/DNS del Listener del clúster).
-* **SQL Server Management Studio (SSMS)** o **Azure Data Studio**.
+* **Git** configurado en tu terminal:
+  ```bash
+  sudo apt install -y git
+  ```
+* **PostgreSQL** (versión 14, 15 o 16):
+  ```bash
+  sudo apt install -y postgresql postgresql-contrib
+  sudo systemctl enable --now postgresql
+  ```
+* Herramienta cliente para administración: `psql` (CLI nativo) o **pgAdmin 4** / **DBeaver**.
 
 ---
 
 ## 🚀 2. Clonación e Instalación
 
-1. **Clonar el repositorio:**
+1. **Clonar el repositorio y situarse en la rama `postgresql-ubuntu`:**
    ```bash
-   git clone https://github.com/tu-usuario/sql-alwayson-visualizer.git
+   git clone https://github.com/rynrizn/sql-alwayson-visualizer.git
    cd sql-alwayson-visualizer
+   git checkout postgresql-ubuntu
    ```
 
 2. **Instalar dependencias con `pnpm`:**
-   > ⚠️ **Importante:** No uses `npm install` ni `yarn`. Utiliza exclusivamente `pnpm` para mantener la integridad del archivo de bloqueo `pnpm-lock.yaml`.
+   > ⚠️ **Importante:** Utiliza exclusivamente `pnpm` para mantener la consistencia de las versiones y el archivo de bloqueo.
    ```bash
    pnpm install
    ```
@@ -42,24 +53,21 @@ Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas en
 Crea una copia del archivo de plantilla `.env.example` y nómbrala `.env` en la raíz del proyecto:
 
 ```bash
-# En Windows (PowerShell):
-Copy-Item .env.example .env
-
-# En Linux / macOS:
 cp .env.example .env
 ```
 
-Abre el archivo `.env` y configura tus credenciales locales:
+Abre el archivo `.env` y configura tus credenciales de PostgreSQL:
 
 ```env
 PORT=3000
-DB_SERVER=localhost        # O la IP/DNS del Listener (ej. BANCO-LISTENER o 192.168.1.150)
-DB_DATABASE=BancoHA_DB
-DB_USER=sa                 # Tu usuario de SQL Server
-DB_PASSWORD=TuPassword123  # Tu contraseña de SQL Server
-DB_PORT=1433
-DB_CONNECT_TIMEOUT=4000
-DB_REQUEST_TIMEOUT=5000
+
+# CONFIGURACION POSTGRESQL EN UBUNTU SERVER
+DB_HOST=localhost            # Host de PostgreSQL, IP de Ubuntu Server o VIP/HAProxy
+DB_PORT=5432                 # Puerto predeterminado de PostgreSQL
+DB_DATABASE=bancoha_db       # Nombre de la base de datos
+DB_USER=postgres             # Usuario de PostgreSQL en Ubuntu
+DB_PASSWORD=TuPassword123    # Contraseña del usuario
+DB_SSL=false                 # Activar solo si se configuran certificados SSL/TLS
 ```
 
 > 🔒 **Aviso de seguridad:** El archivo `.env` está protegido en `.gitignore`. **Nunca** subas contraseñas reales ni credenciales corporativas al repositorio remoto.
@@ -68,258 +76,260 @@ DB_REQUEST_TIMEOUT=5000
 
 ## 👥 Perfiles y datos de demostración
 
-La aplicación no administra autenticación: cada cuenta activa de la vista `vw_CuentasClientes` se presenta como un **perfil de demostración**. Al seleccionar un perfil, la interfaz lo utiliza como cuenta de origen y muestra únicamente sus movimientos entrantes y salientes.
+La aplicación no administra autenticación: cada cuenta activa de la vista `vw_cuentas_clientes` se presenta como un **perfil de demostración**. Al seleccionar un perfil, la interfaz lo utiliza como cuenta de origen y muestra únicamente sus movimientos entrantes y salientes.
 
-Las pantallas y pruebas de esta aplicación son de lectura respecto a los perfiles existentes. El formulario visual para agregar un usuario está preparado para una futura integración, pero no envía ni modifica datos en SQL Server mientras no exista una ruta de alta aprobada.
+Las pantallas y pruebas de esta aplicación son de lectura respecto a los perfiles existentes. El formulario visual para agregar un usuario está preparado para una futura integración, pero no envía ni modifica datos en PostgreSQL mientras no exista una ruta de alta aprobada.
 
 ---
 
-## 🗄️ 4. Base de Datos Local de Desarrollo (`BancoHA_DB`)
+## 🗄️ 4. Base de Datos Local de Desarrollo (`bancoha_db`)
 
-Si vas a desarrollar y aún no estás conectado al clúster Always On, ejecuta el siguiente script en tu SSMS para crear la base de datos `BancoHA_DB`, las tablas relacionales, índices, datos de prueba, vistas y el procedimiento almacenado `sp_TransferirDinero`:
+Ejecuta el siguiente script en `psql` (o desde pgAdmin) para crear la base de datos `bancoha_db`, las tablas relacionales con tipos nativos de PostgreSQL, secuencias, vistas y la función transaccional `sp_transferir_dinero`:
+
+```bash
+# Para ejecutar directamente desde la terminal de Ubuntu:
+sudo -u postgres psql -c "CREATE DATABASE bancoha_db;"
+sudo -u postgres psql -d bancoha_db
+```
 
 ```sql
--- 1. CREACIÓN DE LA BASE DE DATOS
-CREATE DATABASE BancoHA_DB;
-GO
-
-USE BancoHA_DB;
-GO
+-- 1. EXTENSIONES Y CONFIGURACION (OPCIONAL)
+-- CREATE DATABASE bancoha_db;
+-- \c bancoha_db;
 
 -- 2. TABLA TIPOS DE CUENTA
-CREATE TABLE TiposCuenta
+CREATE TABLE IF NOT EXISTS tipos_cuenta
 (
-    IdTipoCuenta INT IDENTITY(1,1) NOT NULL,
-    NombreTipo VARCHAR(30) NOT NULL,
-    Descripcion VARCHAR(150) NULL,
-    CONSTRAINT PK_TiposCuenta PRIMARY KEY (IdTipoCuenta),
-    CONSTRAINT UQ_TiposCuenta_Nombre UNIQUE (NombreTipo)
+    id_tipo_cuenta SERIAL NOT NULL,
+    nombre_tipo VARCHAR(30) NOT NULL,
+    descripcion VARCHAR(150) NULL,
+    CONSTRAINT pk_tipos_cuenta PRIMARY KEY (id_tipo_cuenta),
+    CONSTRAINT uq_tipos_cuenta_nombre UNIQUE (nombre_tipo)
 );
-GO
 
 -- 3. TABLA CLIENTES
-CREATE TABLE Clientes
+CREATE TABLE IF NOT EXISTS clientes
 (
-    IdCliente INT IDENTITY(1,1) NOT NULL,
-    CI VARCHAR(20) NOT NULL,
-    Nombre VARCHAR(50) NOT NULL,
-    Apellido VARCHAR(50) NOT NULL,
-    Telefono VARCHAR(20) NULL,
-    Correo VARCHAR(100) NULL,
-    FechaRegistro DATETIME2 NOT NULL CONSTRAINT DF_Clientes_FechaRegistro DEFAULT SYSDATETIME(),
-    Estado BIT NOT NULL CONSTRAINT DF_Clientes_Estado DEFAULT 1,
-    CONSTRAINT PK_Clientes PRIMARY KEY (IdCliente),
-    CONSTRAINT UQ_Clientes_CI UNIQUE (CI)
+    id_cliente SERIAL NOT NULL,
+    ci VARCHAR(20) NOT NULL,
+    nombre VARCHAR(50) NOT NULL,
+    apellido VARCHAR(50) NOT NULL,
+    telefono VARCHAR(20) NULL,
+    correo VARCHAR(100) NULL,
+    fecha_registro TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    estado BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT pk_clientes PRIMARY KEY (id_cliente),
+    CONSTRAINT uq_clientes_ci UNIQUE (ci)
 );
-GO
 
 -- 4. TABLA CUENTAS
-CREATE TABLE Cuentas
+CREATE TABLE IF NOT EXISTS cuentas
 (
-    IdCuenta INT IDENTITY(1,1) NOT NULL,
-    IdCliente INT NOT NULL,
-    IdTipoCuenta INT NOT NULL,
-    NumeroCuenta VARCHAR(20) NOT NULL,
-    Saldo DECIMAL(18,2) NOT NULL CONSTRAINT DF_Cuentas_Saldo DEFAULT 0,
-    FechaApertura DATETIME2 NOT NULL CONSTRAINT DF_Cuentas_FechaApertura DEFAULT SYSDATETIME(),
-    Estado BIT NOT NULL CONSTRAINT DF_Cuentas_Estado DEFAULT 1,
-    CONSTRAINT PK_Cuentas PRIMARY KEY (IdCuenta),
-    CONSTRAINT UQ_Cuentas_NumeroCuenta UNIQUE (NumeroCuenta),
-    CONSTRAINT CK_Cuentas_Saldo CHECK (Saldo >= 0),
-    CONSTRAINT FK_Cuentas_Clientes FOREIGN KEY (IdCliente) REFERENCES Clientes(IdCliente),
-    CONSTRAINT FK_Cuentas_TiposCuenta FOREIGN KEY (IdTipoCuenta) REFERENCES TiposCuenta(IdTipoCuenta)
+    id_cuenta SERIAL NOT NULL,
+    id_cliente INT NOT NULL,
+    id_tipo_cuenta INT NOT NULL,
+    numero_cuenta VARCHAR(20) NOT NULL,
+    saldo NUMERIC(18,2) NOT NULL DEFAULT 0,
+    fecha_apertura TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    estado BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT pk_cuentas PRIMARY KEY (id_cuenta),
+    CONSTRAINT uq_cuentas_numero_cuenta UNIQUE (numero_cuenta),
+    CONSTRAINT ck_cuentas_saldo CHECK (saldo >= 0),
+    CONSTRAINT fk_cuentas_clientes FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    CONSTRAINT fk_cuentas_tipos_cuenta FOREIGN KEY (id_tipo_cuenta) REFERENCES tipos_cuenta(id_tipo_cuenta)
 );
-GO
 
 -- 5. TABLA TRANSACCIONES
-CREATE TABLE Transacciones
+CREATE TABLE IF NOT EXISTS transacciones
 (
-    IdTransaccion BIGINT IDENTITY(1,1) NOT NULL,
-    IdCuentaOrigen INT NOT NULL,
-    IdCuentaDestino INT NOT NULL,
-    TipoTransaccion VARCHAR(30) NOT NULL,
-    Monto DECIMAL(18,2) NOT NULL,
-    FechaTransaccion DATETIME2 NOT NULL CONSTRAINT DF_Transacciones_Fecha DEFAULT SYSDATETIME(),
-    SaldoAnteriorOrigen DECIMAL(18,2) NOT NULL,
-    SaldoPosteriorOrigen DECIMAL(18,2) NOT NULL,
-    SaldoAnteriorDestino DECIMAL(18,2) NOT NULL,
-    SaldoPosteriorDestino DECIMAL(18,2) NOT NULL,
-    ServidorProcesador VARCHAR(128) NOT NULL,
-    Estado VARCHAR(20) NOT NULL CONSTRAINT DF_Transacciones_Estado DEFAULT 'EXITOSA',
-    Descripcion VARCHAR(200) NULL,
-    CONSTRAINT PK_Transacciones PRIMARY KEY (IdTransaccion),
-    CONSTRAINT CK_Transacciones_Monto CHECK (Monto > 0),
-    CONSTRAINT CK_Transacciones_Cuentas CHECK (IdCuentaOrigen <> IdCuentaDestino),
-    CONSTRAINT CK_Transacciones_Estado CHECK (Estado IN ('EXITOSA', 'CANCELADA')),
-    CONSTRAINT FK_Transacciones_CuentaOrigen FOREIGN KEY (IdCuentaOrigen) REFERENCES Cuentas(IdCuenta),
-    CONSTRAINT FK_Transacciones_CuentaDestino FOREIGN KEY (IdCuentaDestino) REFERENCES Cuentas(IdCuenta)
+    id_transaccion BIGSERIAL NOT NULL,
+    cuenta_origen VARCHAR(20) NOT NULL,
+    cuenta_destino VARCHAR(20) NOT NULL,
+    tipo_transaccion VARCHAR(30) NOT NULL,
+    monto NUMERIC(18,2) NOT NULL,
+    fecha_transaccion TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    saldo_anterior_origen NUMERIC(18,2) NOT NULL,
+    saldo_posterior_origen NUMERIC(18,2) NOT NULL,
+    saldo_anterior_destino NUMERIC(18,2) NOT NULL,
+    saldo_posterior_destino NUMERIC(18,2) NOT NULL,
+    servidor_procesador VARCHAR(128) NOT NULL,
+    estado VARCHAR(20) NOT NULL DEFAULT 'EXITOSA',
+    descripcion VARCHAR(200) NULL,
+    CONSTRAINT pk_transacciones PRIMARY KEY (id_transaccion),
+    CONSTRAINT ck_transacciones_monto CHECK (monto > 0),
+    CONSTRAINT ck_transacciones_cuentas CHECK (cuenta_origen <> cuenta_destino),
+    CONSTRAINT ck_transacciones_estado CHECK (estado IN ('EXITOSA', 'CANCELADA'))
 );
-GO
 
--- 6. TABLA AUDITORÍA
-CREATE TABLE Auditoria
+-- 6. TABLA AUDITORIA
+CREATE TABLE IF NOT EXISTS auditoria
 (
-    IdAuditoria BIGINT IDENTITY(1,1) NOT NULL,
-    FechaHora DATETIME2 NOT NULL CONSTRAINT DF_Auditoria_FechaHora DEFAULT SYSDATETIME(),
-    UsuarioBD VARCHAR(128) NOT NULL,
-    Operacion VARCHAR(50) NOT NULL,
-    TablaAfectada VARCHAR(50) NOT NULL,
-    IdRegistro BIGINT NULL,
-    Servidor VARCHAR(128) NOT NULL,
-    Descripcion VARCHAR(250) NULL,
-    CONSTRAINT PK_Auditoria PRIMARY KEY (IdAuditoria)
+    id_auditoria BIGSERIAL NOT NULL,
+    fecha_hora TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    usuario_bd VARCHAR(128) NOT NULL,
+    operacion VARCHAR(50) NOT NULL,
+    tabla_afectada VARCHAR(50) NOT NULL,
+    id_registro BIGINT NULL,
+    servidor VARCHAR(128) NOT NULL,
+    descripcion VARCHAR(250) NULL,
+    CONSTRAINT pk_auditoria PRIMARY KEY (id_auditoria)
 );
-GO
 
--- 7. ÍNDICES DE RENDIMIENTO
-CREATE INDEX IX_Cuentas_IdCliente ON Cuentas(IdCliente);
-CREATE INDEX IX_Transacciones_Fecha ON Transacciones(FechaTransaccion);
-CREATE INDEX IX_Auditoria_FechaHora ON Auditoria(FechaHora);
-GO
+-- 7. INDICES DE RENDIMIENTO
+CREATE INDEX IF NOT EXISTS ix_cuentas_id_cliente ON cuentas(id_cliente);
+CREATE INDEX IF NOT EXISTS ix_transacciones_fecha ON transacciones(fecha_transaccion);
+CREATE INDEX IF NOT EXISTS ix_auditoria_fecha_hora ON auditoria(fecha_hora);
 
 -- 8. DATOS INICIALES DE PRUEBA
-INSERT INTO TiposCuenta (NombreTipo, Descripcion) VALUES
+INSERT INTO tipos_cuenta (nombre_tipo, descripcion) VALUES
 ('Ahorro', 'Cuenta destinada al ahorro de fondos'),
-('Corriente', 'Cuenta para operaciones frecuentes');
-GO
+('Corriente', 'Cuenta para operaciones frecuentes')
+ON CONFLICT (nombre_tipo) DO NOTHING;
 
-INSERT INTO Clientes (CI, Nombre, Apellido, Telefono, Correo) VALUES
+INSERT INTO clientes (ci, nombre, apellido, telefono, correo) VALUES
 ('5801234', 'Carlos', 'Mamani', '76123456', 'carlos.mamani@email.com'),
 ('5823456', 'Maria', 'Flores', '76234567', 'maria.flores@email.com'),
-('5845678', 'Juan', 'Ramirez', '76345678', 'juan.ramirez@email.com');
-GO
+('5845678', 'Juan', 'Ramirez', '76345678', 'juan.ramirez@email.com')
+ON CONFLICT (ci) DO NOTHING;
 
-INSERT INTO Cuentas (IdCliente, IdTipoCuenta, NumeroCuenta, Saldo) VALUES
+INSERT INTO cuentas (id_cliente, id_tipo_cuenta, numero_cuenta, saldo) VALUES
 (1, 1, '1000000001', 5000.00),
 (2, 1, '1000000002', 3000.00),
-(3, 2, '1000000003', 7500.00);
-GO
+(3, 2, '1000000003', 7500.00)
+ON CONFLICT (numero_cuenta) DO NOTHING;
 
--- 9. VISTA: vw_CuentasClientes (Consumida por el chat de la web)
-CREATE OR ALTER VIEW vw_CuentasClientes
-AS
+-- 9. VISTA: vw_cuentas_clientes (Consumida por la consola web)
+CREATE OR REPLACE VIEW vw_cuentas_clientes AS
 SELECT
-    c.IdCliente,
-    c.CI,
-    c.Nombre,
-    c.Apellido,
-    cu.IdCuenta,
-    cu.NumeroCuenta,
-    tc.NombreTipo AS TipoCuenta,
-    cu.Saldo,
-    cu.FechaApertura,
-    cu.Estado
-FROM Clientes c
-INNER JOIN Cuentas cu ON c.IdCliente = cu.IdCliente
-INNER JOIN TiposCuenta tc ON cu.IdTipoCuenta = tc.IdTipoCuenta;
-GO
+    c.id_cliente,
+    c.ci,
+    c.nombre,
+    c.apellido,
+    cu.id_cuenta,
+    cu.numero_cuenta,
+    tc.nombre_tipo AS tipo_cuenta,
+    cu.saldo,
+    cu.fecha_apertura,
+    cu.estado
+FROM clientes c
+INNER JOIN cuentas cu ON c.id_cliente = cu.id_cliente
+INNER JOIN tipos_cuenta tc ON cu.id_tipo_cuenta = tc.id_tipo_cuenta;
 
--- 10. VISTA: vw_UltimasTransacciones (Consumida por el monitor en vivo)
-CREATE OR ALTER VIEW vw_UltimasTransacciones
-AS
+-- 10. VISTA: vw_ultimas_transacciones (Consumida por el monitor en vivo)
+CREATE OR REPLACE VIEW vw_ultimas_transacciones AS
 SELECT
-    t.IdTransaccion,
-    co.NumeroCuenta AS CuentaOrigen,
-    cd.NumeroCuenta AS CuentaDestino,
-    t.TipoTransaccion,
-    t.Monto,
-    t.FechaTransaccion,
-    t.ServidorProcesador,
-    t.Estado,
-    t.Descripcion
-FROM Transacciones t
-INNER JOIN Cuentas co ON t.IdCuentaOrigen = co.IdCuenta
-INNER JOIN Cuentas cd ON t.IdCuentaDestino = cd.IdCuenta;
-GO
+    id_transaccion,
+    cuenta_origen,
+    cuenta_destino,
+    tipo_transaccion,
+    monto,
+    fecha_transaccion,
+    servidor_procesador,
+    estado,
+    descripcion
+FROM transacciones;
 
--- 11. PROCEDIMIENTO ALMACENADO: sp_TransferirDinero
-CREATE OR ALTER PROCEDURE sp_TransferirDinero
-    @NumeroCuentaOrigen  VARCHAR(20),
-    @NumeroCuentaDestino VARCHAR(20),
-    @Monto               DECIMAL(18,2),
-    @Descripcion         VARCHAR(200) = NULL
-AS
+-- 11. FUNCION TRANSACCIONAL ACID: sp_transferir_dinero
+CREATE OR REPLACE FUNCTION sp_transferir_dinero(
+    p_numero_cuenta_origen  VARCHAR(20),
+    p_numero_cuenta_destino VARCHAR(20),
+    p_monto                 NUMERIC(18,2),
+    p_descripcion           VARCHAR(200) DEFAULT 'Transferencia Web'
+)
+RETURNS TABLE (
+    resultado           VARCHAR,
+    cuenta_origen       VARCHAR,
+    cuenta_destino      VARCHAR,
+    monto               NUMERIC(18,2),
+    nuevo_saldo_origen  NUMERIC(18,2),
+    nuevo_saldo_destino NUMERIC(18,2),
+    servidor_procesador VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id_cuenta_origen   INT;
+    v_id_cuenta_destino  INT;
+    v_saldo_origen       NUMERIC(18,2);
+    v_saldo_destino      NUMERIC(18,2);
+    v_nuevo_origen       NUMERIC(18,2);
+    v_nuevo_destino      NUMERIC(18,2);
+    v_servidor           VARCHAR(128);
 BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
+    -- Validaciones de parametros
+    IF p_monto <= 0 THEN
+        RAISE EXCEPTION 'El monto de la transferencia debe ser mayor a 0.';
+    END IF;
 
-    DECLARE
-        @IdCuentaOrigen INT,
-        @IdCuentaDestino INT,
-        @SaldoOrigen DECIMAL(18,2),
-        @SaldoDestino DECIMAL(18,2),
-        @NuevoSaldoOrigen DECIMAL(18,2),
-        @NuevoSaldoDestino DECIMAL(18,2);
+    IF p_numero_cuenta_origen = p_numero_cuenta_destino THEN
+        RAISE EXCEPTION 'La cuenta origen y destino no pueden ser iguales.';
+    END IF;
 
-    BEGIN TRY
-        IF @Monto <= 0
-            THROW 50001, 'El monto de la transferencia debe ser mayor a 0.', 1;
+    -- Obtener identificador del nodo servidor actual
+    SELECT COALESCE(inet_server_addr()::text, 'ubuntu-node-primary') INTO v_servidor;
 
-        IF @NumeroCuentaOrigen = @NumeroCuentaDestino
-            THROW 50002, 'La cuenta origen y destino no pueden ser iguales.', 1;
+    -- Bloqueo pesimista con FOR UPDATE para evitar condiciones de carrera (ACID)
+    SELECT id_cuenta, saldo INTO v_id_cuenta_origen, v_saldo_origen
+    FROM cuentas
+    WHERE numero_cuenta = p_numero_cuenta_origen
+    FOR UPDATE;
 
-        BEGIN TRANSACTION;
+    IF v_id_cuenta_origen IS NULL THEN
+        RAISE EXCEPTION 'La cuenta origen no existe.';
+    END IF;
 
-        SELECT @IdCuentaOrigen = IdCuenta, @SaldoOrigen = Saldo
-        FROM Cuentas WITH (UPDLOCK, HOLDLOCK)
-        WHERE NumeroCuenta = @NumeroCuentaOrigen;
+    SELECT id_cuenta, saldo INTO v_id_cuenta_destino, v_saldo_destino
+    FROM cuentas
+    WHERE numero_cuenta = p_numero_cuenta_destino
+    FOR UPDATE;
 
-        SELECT @IdCuentaDestino = IdCuenta, @SaldoDestino = Saldo
-        FROM Cuentas WITH (UPDLOCK, HOLDLOCK)
-        WHERE NumeroCuenta = @NumeroCuentaDestino;
+    IF v_id_cuenta_destino IS NULL THEN
+        RAISE EXCEPTION 'La cuenta destino no existe.';
+    END IF;
 
-        IF @IdCuentaOrigen IS NULL
-            THROW 50003, 'La cuenta origen no existe.', 1;
+    IF v_saldo_origen < p_monto THEN
+        RAISE EXCEPTION 'Saldo insuficiente en la cuenta origen.';
+    END IF;
 
-        IF @IdCuentaDestino IS NULL
-            THROW 50004, 'La cuenta destino no existe.', 1;
+    -- Calcular nuevos balances
+    v_nuevo_origen := v_saldo_origen - p_monto;
+    v_nuevo_destino := v_saldo_destino + p_monto;
 
-        IF @SaldoOrigen < @Monto
-            THROW 50005, 'Saldo insuficiente en la cuenta origen.', 1;
+    -- Actualizar saldos
+    UPDATE cuentas SET saldo = v_nuevo_origen WHERE id_cuenta = v_id_cuenta_origen;
+    UPDATE cuentas SET saldo = v_nuevo_destino WHERE id_cuenta = v_id_cuenta_destino;
 
-        SET @NuevoSaldoOrigen = @SaldoOrigen - @Monto;
-        SET @NuevoSaldoDestino = @SaldoDestino + @Monto;
+    -- Registrar transaccion
+    INSERT INTO transacciones
+    (
+        cuenta_origen, cuenta_destino, tipo_transaccion, monto,
+        saldo_anterior_origen, saldo_posterior_origen,
+        saldo_anterior_destino, saldo_posterior_destino,
+        servidor_procesador, estado, descripcion
+    )
+    VALUES
+    (
+        p_numero_cuenta_origen, p_numero_cuenta_destino, 'TRANSFERENCIA', p_monto,
+        v_saldo_origen, v_nuevo_origen,
+        v_saldo_destino, v_nuevo_destino,
+        v_servidor, 'EXITOSA', p_descripcion
+    );
 
-        UPDATE Cuentas SET Saldo = @NuevoSaldoOrigen WHERE IdCuenta = @IdCuentaOrigen;
-        UPDATE Cuentas SET Saldo = @NuevoSaldoDestino WHERE IdCuenta = @IdCuentaDestino;
+    -- Registrar auditoria
+    INSERT INTO auditoria (usuario_bd, operacion, tabla_afectada, id_registro, servidor, descripcion)
+    VALUES (CURRENT_USER, 'TRANSFERENCIA', 'cuentas', v_id_cuenta_origen, v_servidor, 'Transferencia realizada con éxito');
 
-        INSERT INTO Transacciones
-        (
-            IdCuentaOrigen, IdCuentaDestino, TipoTransaccion, Monto,
-            SaldoAnteriorOrigen, SaldoPosteriorOrigen,
-            SaldoAnteriorDestino, SaldoPosteriorDestino,
-            ServidorProcesador, Estado, Descripcion
-        )
-        VALUES
-        (
-            @IdCuentaOrigen, @IdCuentaDestino, 'TRANSFERENCIA', @Monto,
-            @SaldoOrigen, @NuevoSaldoOrigen,
-            @SaldoDestino, @NuevoSaldoDestino,
-            @@SERVERNAME, 'EXITOSA', @Descripcion
-        );
-
-        INSERT INTO Auditoria (UsuarioBD, Operacion, TablaAfectada, IdRegistro, Servidor, Descripcion)
-        VALUES (SUSER_SNAME(), 'TRANSFERENCIA', 'Cuentas', @IdCuentaOrigen, @@SERVERNAME, 'Transferencia realizada');
-
-        COMMIT TRANSACTION;
-
-        SELECT
-            'TRANSFERENCIA EXITOSA' AS Resultado,
-            @NumeroCuentaOrigen AS CuentaOrigen,
-            @NumeroCuentaDestino AS CuentaDestino,
-            @Monto AS Monto,
-            @NuevoSaldoOrigen AS NuevoSaldoOrigen,
-            @NuevoSaldoDestino AS NuevoSaldoDestino,
-            @@SERVERNAME AS ServidorProcesador;
-
-    END TRY
-    BEGIN CATCH
-        IF XACT_STATE() <> 0
-            ROLLBACK TRANSACTION;
-        THROW;
-    END CATCH
+    -- Retornar resultado a la aplicacion
+    RETURN QUERY SELECT
+        'TRANSFERENCIA EXITOSA'::VARCHAR,
+        p_numero_cuenta_origen,
+        p_numero_cuenta_destino,
+        p_monto,
+        v_nuevo_origen,
+        v_nuevo_destino,
+        v_servidor;
 END;
-GO
+$$;
 ```
 
 ---
@@ -339,20 +349,20 @@ http://localhost:3000
 
 ---
 
-## 🏗️ 6. Estructura del Proyecto
+### 🏗️ 6. Estructura del Proyecto
 
-El proyecto sigue una arquitectura desacoplada y modular dividida entre backend (Node.js/Express) y frontend (HTML5/CSS3/JavaScript Vanilla modular):
+El proyecto sigue una arquitectura desacoplada y modular dividida entre backend (Node.js/Express con driver `pg` para PostgreSQL) y frontend (HTML5/CSS3/JavaScript Vanilla modular):
 
 ```text
 banco-ha-demo/
 ├── backend/
 │   ├── routes/
 │   │   ├── movimientos.js     # Endpoints para consultar cuentas e historial de transacciones
-│   │   ├── servidor.js        # Consulta @@SERVERNAME y latencia del nodo activo Always On
-│   │   └── transferencias.js  # Ejecuta sp_TransferirDinero y valida parámetros bancarios
+│   │   ├── servidor.js        # Consulta inet_server_addr() y latencia del nodo activo en PostgreSQL
+│   │   └── transferencias.js  # Invoca sp_transferir_dinero con control ACID
 │   ├── services/
-│   │   └── trafico.js         # Simulador de carga continua y masiva con resiliencia ante failover
-│   ├── database.js            # Pool mssql, queries preparadas y llamadas a Stored Procedures
+│   │   └── trafico.js         # Simulador de carga continua con resiliencia ante conmutación
+│   ├── database.js            # Pool nativo 'pg', queries preparadas parametrizadas ($1..$n)
 │   └── server.js              # Servidor HTTP/Express, Socket.IO y loop de health-check cada 1.5s
 ├── frontend/
 │   ├── assets/
@@ -363,12 +373,12 @@ banco-ha-demo/
 │   │   ├── app.js             # Inicialización y exportación global del cliente WebSocket
 │   │   ├── chat.js            # Carga de cuentas de la BD, búsqueda y gestión del historial aislado
 │   │   ├── modales.js         # Apertura y cierre de diálogos HTML5 (modal alta y visor QR)
-│   │   ├── monitor.js         # Dashboard Always On: estado de réplica, latencia y eventos en vivo
+│   │   ├── monitor.js         # Dashboard PostgreSQL HA: estado de nodo, latencia y eventos en vivo
 │   │   ├── transferencias.js  # Envío de dinero desde el perfil activo hacia la cuenta destino
 │   │   └── ui.js              # Alternancia de tema (claro/oscuro) y contracción/expansión de paneles
 │   ├── favicon.ico            # Ícono oficial de la aplicación web
 │   └── index.html             # Maquetación semántica de tres columnas y modales accesibles
-├── .env.example               # Plantilla de variables de entorno para SQL Server Always On
+├── .env.example               # Plantilla de variables de entorno para PostgreSQL en Ubuntu
 ├── CONTRIBUTING.md            # Guía de contribución, arquitectura y especificación técnica
 ├── package.json               # Dependencias y scripts de ejecución (pnpm)
 └── plan.txt                   # Plan de requerimientos e integración
@@ -382,17 +392,17 @@ banco-ha-demo/
 
 | Método | Ruta | Parámetros / Cuerpo | Descripción |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/servidor` | Ninguno | Retorna el nodo físico activo (`@@SERVERNAME`), timestamp del motor y latencia en ms. |
-| `GET` | `/api/movimientos` | `?limite=15` *(query opcional)* | Obtiene las transacciones globales más recientes registradas en la vista `vw_UltimasTransacciones`. |
-| `GET` | `/api/movimientos/cuentas` | Ninguno | Retorna la lista de clientes y cuentas activas (`vw_CuentasClientes WHERE Estado = 1`). |
-| `GET` | `/api/movimientos/cuenta/:numeroCuenta` | `?limite=30` *(query opcional)* | Consulta el historial aislado donde la cuenta indicada figure como origen o como destino. |
-| `POST` | `/api/transferencia` | `{ cuentaOrigen, cuentaDestino, monto, descripcion }` | Ejecuta el Stored Procedure `sp_TransferirDinero` con control transaccional ACID en SQL Server. |
-| `POST` | `/api/trafico/iniciar` | `{ intervaloMs: 1000 }` *(opcional)* | Inicia la generación automática continua de transferencias entre cuentas activas al azar. |
+| `GET` | `/api/servidor` | Ninguno | Retorna el nodo físico activo (`inet_server_addr()`), rol (`PRIMARY`/`STANDBY`) y latencia en ms. |
+| `GET` | `/api/movimientos` | `?limite=15` *(query opcional)* | Obtiene las transacciones globales más recientes de `vw_ultimas_transacciones`. |
+| `GET` | `/api/movimientos/cuentas` | Ninguno | Retorna la lista de clientes y cuentas activas (`vw_cuentas_clientes WHERE estado = true`). |
+| `GET` | `/api/movimientos/cuenta/:numeroCuenta` | `?limite=30` *(query opcional)* | Consulta el historial aislado donde la cuenta figure como origen o como destino. |
+| `POST` | `/api/transferencia` | `{ cuentaOrigen, cuentaDestino, monto, descripcion }` | Invoca la función PL/pgSQL `sp_transferir_dinero` con bloqueo pesimista `FOR UPDATE` (ACID). |
+| `POST` | `/api/trafico/iniciar` | `{ intervaloMs: 1000 }` *(opcional)* | Inicia la generación automática continua de transferencias aleatorias entre cuentas. |
 | `POST` | `/api/trafico/detener` | Ninguno | Detiene el servicio de simulación de tráfico masivo. |
 
 ### 7.2 Eventos WebSocket en Tiempo Real (Socket.IO)
 
-* **`estado_servidor`**: Emitido periódicamente cada 1500 ms por el loop de comprobación. Notifica si el Listener está `online`, el nombre del servidor primario, rol y latencia; o el estado de conmutación si ocurre una caída de réplica.
+* **`estado_servidor`**: Emitido periódicamente cada 1500 ms. Notifica si PostgreSQL está `online`, el host/IP del servidor primario, rol y latencia; o el estado de conmutación si ocurre una caída de réplica.
 * **`nuevo_movimiento`**: Emitido instantáneamente tras completarse una transferencia (manual o simulada) para alimentar la tabla de operaciones en vivo.
 * **`estado_trafico`**: Notifica a todas las sesiones conectadas si el generador de tráfico está activo o inactivo.
 * **`trafico_tick`**: Notifica el acumulador de transacciones generadas en la simulación actual.
@@ -402,7 +412,7 @@ banco-ha-demo/
 ## 📱 8. Guía de Uso de la Aplicación
 
 1. **Selección de Perfiles (Columna Izquierda):**
-   * Al iniciar, la aplicación carga automáticamente las cuentas existentes en la base de datos `BancoHA_DB`.
+   * Al iniciar, la aplicación carga automáticamente las cuentas existentes en la base de datos `bancoha_db` desde PostgreSQL.
    * Haz clic sobre cualquier cliente para seleccionarlo como **perfil activo**. La interfaz actualizará el avatar, nombre, cuenta y saldo disponible en tiempo real.
    * Utiliza la barra de búsqueda superior para filtrar perfiles rápidamente por nombre o número de cuenta.
 
@@ -413,52 +423,39 @@ banco-ha-demo/
      * **Recepciones (Verde / Entrada):** Operaciones donde la cuenta activa es el receptor.
    * En la barra inferior, selecciona la cuenta destinataria (el selector excluye automáticamente la cuenta activa), ingresa el monto, un concepto opcional y presiona **"ENVIAR DINERO"**.
 
-3. **Monitoreo del Clúster Always On (Columna Derecha):**
-   * La tarjeta superior muestra qué servidor físico (ej. `LAPTOP-01` o `LAPTOP-02`) está respondiendo consultas a través del Listener de Always On y la latencia en milisegundos.
-   * **Prueba de Failover:** Presiona **"⚡ SIMULAR TRÁFICO"** para iniciar transacciones automatizadas continuas. Si desconectas el cable de red o apagas el nodo primario de SQL Server, observarás cómo el indicador cambia a *"FAILOVER ACTIVO / CONMUTACIÓN EN PROCESO"* y, tras la elección del nuevo primario, el sistema reanuda las transferencias sin reiniciar el backend ni recargar el navegador.
+3. **Monitoreo del Clúster PostgreSQL HA (Columna Derecha):**
+   * La tarjeta superior muestra qué nodo de PostgreSQL (IP o host) está respondiendo consultas y la latencia en milisegundos.
+   * **Prueba de Failover:** Presiona **"⚡ SIMULAR TRÁFICO"** para iniciar transacciones automatizadas continuas. Si detienes el servicio en el nodo primario (`sudo systemctl stop postgresql`), observarás cómo el indicador cambia a *"FAILOVER ACTIVO / CONMUTACIÓN EN PROCESO"* y, tras la promoción del nodo secundario (o cambio en PgBouncer/HAProxy), el sistema reanuda las transferencias sin reiniciar el backend ni recargar el navegador.
 
 4. **Controles de Interfaz, Tema y Paneles:**
-   * **Modo Claro / Oscuro (`◐`):** Botón en la cabecera superior para alternar instantáneamente entre la estética Nothing luminosa y la variante oscura de alto contraste. La preferencia se guarda en el almacenamiento local (`localStorage`).
-   * **Visor de Código QR (`⌘`):** Abre un diálogo accesible en pantalla completa que contiene el recurso QR oficial (`frontend/assets/LogoLink.png`), reemplazable por cualquier comprobante o cobro dinámico sin alterar el flujo.
-   * **Preparación de Nuevo Perfil (`+`):** Ubicado en la cabecera del panel de perfiles. Abre un modal para ingresar datos de un nuevo cliente. Este modal valida el formulario visualmente y protege la base de datos no ejecutando escrituras hasta que se habilite una ruta de alta autorizada.
-   * **Colapso / Expansión de Paneles (`‹` / `›`):** Permite contraer la lista de clientes o expandir el monitor transaccional para maximizar el área de trabajo en pantallas reducidas o laptops.
+   * **Modo Claro / Oscuro (`◐`):** Botón en la cabecera superior para alternar instantáneamente entre la estética Nothing luminosa y la variante oscura de alto contraste. La preferencia se guarda en `localStorage`.
+   * **Visor de Código QR (`⌘`):** Abre un diálogo accesible en pantalla completa que contiene el recurso QR oficial (`frontend/assets/LogoLink.png`).
+   * **Preparación de Nuevo Perfil (`+`):** Ubicado en la cabecera del panel de perfiles. Abre un modal para ingresar datos de un nuevo cliente.
+   * **Colapso / Expansión de Paneles (`‹` / `›`):** Permite contraer la lista de clientes o expandir el monitor transaccional.
 
 ---
 
 ## 📝 9. Registro de Cambios Realizados
 
-A continuación se resumen las mejoras implementadas de acuerdo con la planificación técnica:
-
-* **Perfiles respaldados por la base de datos:** Se eliminaron las cuentas simuladas en código. La lista lateral de clientes se nutre exclusivamente de la vista SQL `vw_CuentasClientes`.
-* **Historial transaccional aislado por cuenta:** Implementación de la ruta `/api/movimientos/cuenta/:numeroCuenta` y filtrado bidireccional (`CuentaOrigen` / `CuentaDestino`) para que cada cliente consulte únicamente su actividad.
-* **Separación de responsabilidades con Modal de Alta:** El formulario para nuevos usuarios fue extraído de la barra lateral hacia un modal desacoplado (`#user-modal`) que evita sobrecargar la interfaz y opera en modo visual protegido sin alterar la base de datos.
-* **Visor de Código QR integrado:** Incorporación de ventana modal para visualización de pagos QR reutilizando la estructura de diálogos HTML5 y un vector SVG reemplazable.
-* **Favicon bancario oficial:** Agregado de `frontend/favicon.ico` para la pestaña del navegador.
-* **Diseño Nothing responsivo y controles colapsables:** Nueva distribución de 3 columnas con soporte para dispositivos móviles, alternancia fluida de paneles laterales y soporte completo de temas claro y oscuro.
-* **Arquitectura frontend modular:** Desacoplamiento de la lógica JavaScript en módulos específicos (`app.js`, `chat.js`, `modales.js`, `monitor.js`, `transferencias.js`, `ui.js`).
+* **Migración a PostgreSQL:** Reemplazo integral del driver `mssql` por `pg` (Pool nativo con consultas parametrizadas `$1..$n`).
+* **Funciones PL/pgSQL y Control de Concurrencia:** Creación de `sp_transferir_dinero` con bloqueos pesimistas `SELECT ... FOR UPDATE` para evitar condiciones de carrera.
+* **Compatibilidad de Esquema:** Tipos de datos nativos `SERIAL`, `TIMESTAMPTZ`, `BOOLEAN`, `NUMERIC(18,2)` y eliminación de constructos T-SQL propietarios.
+* **Detección de Rol Dinámico:** Implementación de `pg_is_in_recovery()` y `inet_server_addr()` para monitorear la topología activa y réplicas Standby.
+* **Arquitectura frontend Nothing modular:** Desacoplamiento de la lógica JavaScript en módulos específicos (`app.js`, `chat.js`, `modales.js`, `monitor.js`, `transferencias.js`, `ui.js`).
 
 ---
 
 ## 🌿 10. Convenciones de Contribución y Git Flow
 
-Para mantener un historial limpio y estructurado, sigue este flujo de trabajo:
-
 ### 10.1 Ramas (Branches)
-* `main`: Código estable del sistema con backend Node.js, WebSockets y conexión a SQL Server Always On.
-* `demo-web`: Versión desacoplada 100% client-side (HTML5, CSS y Vanilla JS) con simulación en memoria/localStorage para demostraciones sin backend.
-* Crea ramas descriptivas para cada cambio:
-  ```bash
-  # Para nuevas funcionalidades:
-  git checkout -b feature/nombre-funcionalidad
-
-  # Para corrección de errores:
-  git checkout -b fix/descripcion-del-bug
-  ```
+* **`main`**: Código estable para **Microsoft SQL Server Always On Availability Groups** en Windows.
+* **`postgresql-ubuntu`**: Variante adaptada para **PostgreSQL** sobre **Ubuntu Server**.
+* **`demo-web`**: Versión desacoplada 100% client-side para demostraciones sin backend.
 
 ### 10.2 Formato de Commits (Conventional Commits)
 Usa prefijos claros en tus mensajes:
-* `feat:` Nueva funcionalidad (ej. `feat: agregar vista de cuentas en frontend`).
-* `fix:` Corrección de error (ej. `fix: ajustar timeout de reconexion mssql`).
+* `feat:` Nueva funcionalidad.
+* `fix:` Corrección de error.
 * `style:` Cambios visuales o de CSS.
 * `docs:` Cambios en documentación o comentarios.
 * `refactor:` Reestructuración de código sin alterar comportamiento.
@@ -472,6 +469,6 @@ Usa prefijos claros en tus mensajes:
    ```
 3. Sube tu rama al repositorio remoto:
    ```bash
-   git push origin feature/nombre-funcionalidad
+   git push origin postgresql-ubuntu
    ```
-4. Abre un **Pull Request (PR)** hacia la rama `main` describiendo los cambios implementados.
+
