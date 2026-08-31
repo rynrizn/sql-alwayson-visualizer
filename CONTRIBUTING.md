@@ -366,7 +366,7 @@ banco-ha-demo/
 │   └── server.js              # Servidor HTTP/Express, Socket.IO y loop de health-check cada 1.5s
 ├── frontend/
 │   ├── assets/
-│   │   └── LogoLink.png       # Código QR oficial para acceso rápido a la plataforma web
+│   │   └── LogoLink.svg       # Código QR oficial para acceso rápido a la plataforma web
 │   ├── css/
 │   │   └── styles.css         # Estilos inspirados en estética Nothing, variables CSS y temas
 │   ├── js/
@@ -429,7 +429,7 @@ banco-ha-demo/
 
 4. **Controles de Interfaz, Tema y Paneles:**
    * **Modo Claro / Oscuro (`◐`):** Botón en la cabecera superior para alternar instantáneamente entre la estética Nothing luminosa y la variante oscura de alto contraste. La preferencia se guarda en `localStorage`.
-   * **Visor de Código QR (`⌘`):** Abre un diálogo accesible en pantalla completa que contiene el recurso QR oficial (`frontend/assets/LogoLink.png`).
+   * **Visor de Código QR (`⌘`):** Abre un diálogo accesible en pantalla completa que contiene el recurso QR oficial (`frontend/assets/LogoLink.svg`).
    * **Preparación de Nuevo Perfil (`+`):** Ubicado en la cabecera del panel de perfiles. Abre un modal para ingresar datos de un nuevo cliente.
    * **Colapso / Expansión de Paneles (`‹` / `›`):** Permite contraer la lista de clientes o expandir el monitor transaccional.
 
