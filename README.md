@@ -1,68 +1,78 @@
-# 🏦 Banco HA — Core Transaccional Always On
+# 🏦 Banco HA — Core Transaccional PostgreSQL (Ubuntu Server)
 
-Sistema web para demostración y monitoreo en tiempo real de **Alta Disponibilidad con SQL Server Always On Availability Groups**.
+> 🐧 **Rama `postgresql-ubuntu`:** Variante adaptada para funcionar con motor **PostgreSQL** sobre **Ubuntu Server 22.04/24.04 LTS**, utilizando el driver oficial `pg`, transaccionalidad ACID y soporte para topologías de Alta Disponibilidad (Streaming Replication, Patroni o PgBouncer/HAProxy).
 
-> 🌐 **Demostración Interactiva en Vivo (GitHub Pages):**  
-> Accede directamente a la versión 100% Client-Side con diseño Nothing:  
-> **[https://rynrizn.github.io/sql-alwayson-visualizer/](https://rynrizn.github.io/sql-alwayson-visualizer/)**
+Sistema web para demostración y monitoreo en tiempo real de **Alta Disponibilidad con PostgreSQL**.
 
-Permite ejecutar transferencias bancarias protegidas por transacciones ACID, simular tráfico continuo y evidenciar la conmutación por error (*Failover*) automática entre réplicas primarias y secundarias sin interrupción del servicio web.
+Permite ejecutar transferencias bancarias protegidas por transacciones ACID en funciones PL/pgSQL, simular tráfico continuo y evidenciar la conmutación por error (*Failover*) automática entre nodos primarios y réplicas en espera (Standby) sin interrupción del servicio web.
 
 ---
 
-## 📚 Documentación del Proyecto
-
-El repositorio cuenta con dos guías especializadas según el perfil:
+## 📚 Documentación de esta Rama
 
 | Documento | Público objetivo | Contenido principal |
 | :--- | :--- | :--- |
-| 📖 **[Guía de Uso de la Aplicación](./GUIA_DE_USO.md)** | Usuarios, Evaluadores y Expositores | Cómo operar la web, realizar transferencias, ejecutar la prueba de failover, usar el visor QR y alternar temas. |
-| 🛠️ **[Guía de Contribución y Configuración](./CONTRIBUTING.md)** | Desarrolladores y Administradores de BD | Requisitos previos, script DDL/DML de SQL Server, variables de entorno (`.env`), endpoints API y flujo de Git. |
+| 📖 **[Guía de Uso de la Aplicación](./GUIA_DE_USO.md)** | Usuarios, Evaluadores y Expositores | Operación de la consola transaccional, simulación de tráfico masivo y monitoreo en vivo. |
+| 🛠️ **[Guía de Contribución y Configuración](./CONTRIBUTING.md)** | Administradores de BD y Desarrolladores | Prerrequisitos de Ubuntu, script DDL/DML para PostgreSQL, configuración de variables de entorno y arquitectura. |
 
 ---
 
-## ⚡ Características Principales
+## ⚡ Características de la Versión PostgreSQL
 
-* **Alta Disponibilidad Real:** Conexión transparente mediante el Listener de SQL Server Always On.
-* **Consola Transaccional:** Historial individual aislado por cliente (envíos y recibos) y transferencias inmediatas mediante el procedimiento almacenado `sp_TransferirDinero`.
-* **Monitoreo en Tiempo Real:** Detección continua de la réplica activa (`SELECT @@SERVERNAME`), medición de latencia y registro en vivo vía WebSockets (Socket.IO).
-* **Simulador de Carga Transaccional:** Generador de transferencias masivas continuas para validar la conmutación por error en vivo.
-* **Diseño Nothing Adaptativo:** Interfaz sobria y funcional con botones táctiles cuadrados redondeados, soporte responsivo para móviles mediante cajones laterales y temas claro/oscuro.
-
----
-
-## 🚀 Inicio Rápido (Servidor Completo)
-
-1. Instalar dependencias:
-   ```bash
-   pnpm install
-   ```
-2. Configurar variables de entorno copiando `.env.example` a `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-3. Iniciar en modo desarrollo:
-   ```bash
-   pnpm dev
-   ```
-4. Acceder en el navegador:
-   [http://localhost:3000](http://localhost:3000)
+* **Driver Nativo PostgreSQL (`pg`):** Gestión eficiente de conexiones mediante Pool asíncrono con control de desconexión y failover rápido.
+* **Monitoreo de Nodo en Tiempo Real:** Detección continua de la dirección IP del servidor (`inet_server_addr()`), verificación del rol del nodo (`pg_is_in_recovery()`) y latencia en milisegundos emitida vía WebSockets (Socket.IO).
+* **Transaccionalidad ACID Pura en PL/pgSQL:** Procedimiento/función `sp_transferir_dinero` con bloqueo pesimista `SELECT ... FOR UPDATE` para evitar condiciones de carrera.
+* **Historial Transaccional Aislado:** Vistas relacionales `vw_cuentas_clientes` y `vw_ultimas_transacciones` optimizadas para consultas concurrentes.
+* **Simulador de Carga Transaccional Resiliente:** Generador de transferencias masivas automatizadas que absorbe pausas momentáneas durante la promoción de nodos Standby.
+* **Diseño Nothing Adaptativo:** Consola de 3 columnas con soporte táctil, buscador rápido de clientes y temas claro/oscuro.
 
 ---
 
-## 🌐 Demostración 100% Client-Side (GitHub Pages)
+## 🚀 Inicio Rápido en Ubuntu Server
 
-Para presentaciones o evaluaciones en cualquier dispositivo sin requerir Node.js ni SQL Server en ejecución:
+### 1. Prerrequisitos en Ubuntu
+```bash
+# Instalar Node.js y pnpm
+sudo apt update && sudo apt install -y curl
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g pnpm
 
-* 🚀 **Acceso directo online:** [https://rynrizn.github.io/sql-alwayson-visualizer/](https://rynrizn.github.io/sql-alwayson-visualizer/)
-* **Para ejecutarla localmente:**
-  1. Cambiar a la rama de demostración:
-     ```bash
-     git checkout demo-web
-     ```
-  2. Abrir directamente en cualquier navegador:
-     * **Landing Informativa:** Abre [`docs/index.html`](./docs/index.html) para explorar la presentación del clúster, objetivos y la guía interactiva del failover.
-     * **Consola Interactiva:** Abre [`docs/demo.html`](./docs/demo.html) para operar la consola transaccional, simular la conmutación por error (2.5 s) y generar tráfico masivo continuo con persistencia local en `localStorage`.
+# Instalar PostgreSQL
+sudo apt install -y postgresql postgresql-contrib
+```
+
+### 2. Configuración de Base de Datos
+Accede a PostgreSQL y crea la base de datos:
+```bash
+sudo -u postgres psql -c "CREATE DATABASE bancoha_db;"
+# Ejecuta el script DDL ubicado en CONTRIBUTING.md sección 4
+sudo -u postgres psql -d bancoha_db -f docs/schema-postgres.sql # o copia el script de CONTRIBUTING.md
+```
+
+### 3. Configurar variables de entorno
+```bash
+cp .env.example .env
+# Edita las credenciales en .env si es necesario:
+nano .env
+```
+
+### 4. Instalar dependencias e iniciar
+```bash
+pnpm install
+pnpm dev
+```
+
+La aplicación estará disponible en:  
+👉 **[http://localhost:3000](http://localhost:3000)** (o la IP de tu servidor Ubuntu: `http://<IP-UBUNTU>:3000`)
+
+---
+
+## 🔀 Relación con las Otras Ramas
+
+* **`main`**: Versión configurada para **Microsoft SQL Server Always On Availability Groups** en Windows Server.
+* **`postgresql-ubuntu`** *(esta rama)*: Adaptada para **PostgreSQL** sobre **Ubuntu Server**, utilizando el driver `pg` y funciones PL/pgSQL.
+* **`demo-web`**: Versión 100% Client-Side estática para pruebas y presentaciones online en [GitHub Pages](https://rynrizn.github.io/sql-alwayson-visualizer/).
 
 ---
 
