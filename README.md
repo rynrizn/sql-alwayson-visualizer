@@ -41,7 +41,7 @@ docs/
 │   └── demo.js      # Motor client-side de transacciones, estados de réplicas y persistencia
 └── assets/
     ├── favicon.ico  # Ícono oficial del banco
-    └── LogoLink.png # Código QR oficial para escaneo rápido desde smartphones
+    └── LogoLink.svg # Código QR oficial para escaneo rápido desde smartphones
 ```
 
 ---
