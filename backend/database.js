@@ -1,300 +1,302 @@
-// Carga las variables definidas en el archivo .env a process.env
+// ============================================================================
+// MODULO DE CONEXION Y OPERACIONES DE BASE DE DATOS (POSTGRESQL - UBUNTU SERVER)
+// ============================================================================
+// Este modulo reemplaza el driver nativo de SQL Server (mssql) por el cliente 
+// oficial de PostgreSQL ('pg'), adaptando el pool de conexiones, las consultas
+// relacionales y la invocacion de funciones/procedimientos para entornos Linux/Ubuntu.
+
 require('dotenv').config();
+const { Pool } = require('pg');
 
-// Importa el driver oficial de SQL Server para Node.js
-const sql = require('mssql');
-
-// 1. OBJETO DE CONFIGURACIÓN DE LA CONEXIÓN
-// Define las reglas y credenciales para conectarse a SQL Server
+// 1. OBJETO DE CONFIGURACION DEL POOL DE CONEXIONES
+// Diseñado para alta resiliencia en Ubuntu Server. Soporta balanceadores (HAProxy/PgBouncer)
+// o conexiones directas a clusters con Streaming Replication / Patroni.
 const dbConfig = {
-  user: process.env.DB_USER || 'sa',
+  host: process.env.DB_HOST || process.env.DB_SERVER || 'localhost',
+  user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || '',
-  server: process.env.DB_SERVER || 'localhost',
-  database: process.env.DB_DATABASE || 'BancoHA_DB',
-  port: parseInt(process.env.DB_PORT, 10) || 1433,
-  options: {
-    encrypt: false,               // Desactivado para entornos de red local sin certificados SSL
-    trustServerCertificate: true, // Acepta certificados autofirmados de desarrollo
-    
-    // CRÍTICO PARA FAILOVER: Si el nodo cae, no se queda esperando 15-30 segundos.
-    // A los 4 segundos aborta y reintenta conectarse al nuevo servidor primario.
-    connectTimeout: parseInt(process.env.DB_CONNECT_TIMEOUT, 10) || 4000,
-    requestTimeout: parseInt(process.env.DB_REQUEST_TIMEOUT, 10) || 5000,
-    
-    // OBLIGATORIO PARA ALWAYS ON:
-    // Obliga al driver a resolver todas las IPs asociadas al Listener en paralelo.
-    // Esto hace que la reconexión tras apagar la Laptop 1 sea en menos de 2 segundos.
-    multiSubnetFailover: true
-  },
-  pool: {
-    max: 10,                 // Máximo 10 conexiones simultáneas abiertas en memoria
-    min: 0,                  // Si no hay tráfico, libera conexiones para ahorrar RAM
-    idleTimeoutMillis: 3000  // Cierra conexiones inactivas después de 3 segundos
-  }
+  database: process.env.DB_DATABASE || 'bancoha_db',
+  port: parseInt(process.env.DB_PORT, 10) || 5432,
+  
+  // Limites del pool de conexiones en memoria
+  max: 10,                      // Maximo 10 clientes simultaneos en el pool
+  idleTimeoutMillis: 3000,      // Tiempo de gracia para cerrar clientes inactivos
+  connectionTimeoutMillis: 4000 // Timeout de 4s para failover veloz ante caida del nodo primario
 };
 
-// Variable global en memoria para reutilizar el pool activo
+// Variable singleton para reutilizar el Pool de PostgreSQL a lo largo de la app
 let pool = null;
 
 /**
- * Obtiene el pool de conexiones existente o crea uno nuevo si se cayó.
- * Si ocurrió un failover, la conexión previa fallará y aquí se recrea automáticamente.
+ * Inicializa y retorna el Pool de conexiones activo.
+ * Si ocurre una caida en el nodo (failover), el pool gestiona la reconexion
+ * o se reinicializa limpiamente.
  */
-async function getPool() {
-  try {
-    // Si ya existe un pool y sigue conectado, lo reutilizamos
-    if (pool && pool.connected) {
-      return pool;
-    }
-    
-    // Si el pool quedó en un estado corrupto/desconectado por el corte de red, lo cerramos
-    if (pool && !pool.connected) {
-      try { await pool.close(); } catch (e) { /* Ignorar error de cierre forzado */ }
-    }
-    
-    // Creamos y conectamos un nuevo pool apuntando al Listener
-    pool = await new sql.ConnectionPool(dbConfig).connect();
-    return pool;
-  } catch (err) {
-    pool = null; // Reiniciar referencia en caso de fallo total
-    throw err;
+function getPool() {
+  if (!pool) {
+    pool = new Pool(dbConfig);
+
+    // Captura errores silenciosos en clientes inactivos para evitar que la aplicacion colapse
+    pool.on('error', (err) => {
+      console.error('⚠️ [PostgreSQL Pool] Error inesperado en cliente inactivo:', err.message);
+    });
   }
+  return pool;
 }
 
 /**
  * 1. OBTENER ESTADO DEL SERVIDOR ACTIVO
- * Ejecuta SELECT @@SERVERNAME para saber qué laptop física está atendiendo la conexión.
+ * En PostgreSQL, se consulta la direccion IP del host actual con `inet_server_addr()`,
+ * el puerto y la hora del servidor con `NOW()`. Si el nodo es una replica en caliente,
+ * podemos detectar si esta en modo de solo lectura con `pg_is_in_recovery()`.
  */
 async function obtenerServidorActivo() {
-  const tInicio = Date.now(); // Cronómetro de inicio
-  const conn = await getPool();
-  
-  // Consulta directa a la función global del motor SQL Server
-  const result = await conn.request().query(`
+  const tInicio = Date.now();
+  const poolActual = getPool();
+
+  // Consulta informativa del motor PostgreSQL
+  const query = `
     SELECT 
-      @@SERVERNAME AS Servidor, 
-      SYSDATETIME() AS Timestamp
-  `);
-  
-  const duracion = Date.now() - tInicio; // Tiempo que tardó la consulta (latencia)
+      COALESCE(inet_server_addr()::text, 'localhost (socket unix)') AS servidor,
+      current_database() AS base_datos,
+      pg_is_in_recovery() AS en_recuperacion,
+      NOW() AS timestamp;
+  `;
+
+  const { rows } = await poolActual.query(query);
+  const duracion = Date.now() - tInicio;
+  const data = rows[0];
 
   return {
-    servidor: result.recordset[0].Servidor,
-    timestamp: result.recordset[0].Timestamp,
+    servidor: data.servidor,
+    baseDatos: data.base_datos,
+    rol: data.en_recuperacion ? 'STANDBY (REPLICA)' : 'PRIMARY',
+    timestamp: data.timestamp,
     tiempoRespuestaMs: duracion
   };
 }
 
 /**
- * 2. EJECUTAR TRANSFERENCIA MEDIANTE EL STORED PROCEDURE REAL
- * Llama al procedimiento `sp_TransferirDinero` creado por el equipo de base de datos.
+ * 2. EJECUTAR TRANSFERENCIA BANCARIA ACID
+ * Invoca la funcion PL/pgSQL `sp_transferir_dinero` que implementa bloqueo pesimista
+ * (SELECT FOR UPDATE) y gestion transaccional protegida contra condiciones de carrera.
  */
 async function ejecutarTransferencia(cuentaOrigen, cuentaDestino, monto, descripcion = 'Transferencia Web') {
   const tInicio = Date.now();
-  const conn = await getPool();
-  
-  const request = conn.request();
-  
-  // Parámetros de entrada que exige `sp_TransferirDinero`
-  request.input('NumeroCuentaOrigen', sql.VarChar(20), cuentaOrigen);
-  request.input('NumeroCuentaDestino', sql.VarChar(20), cuentaDestino);
-  request.input('Monto', sql.Decimal(18, 2), monto);
-  request.input('Descripcion', sql.VarChar(200), descripcion);
+  const poolActual = getPool();
 
-  // Ejecuta el procedimiento almacenado
-  const result = await request.execute('sp_TransferirDinero');
+  // En PostgreSQL las funciones/procedimientos con retorno de tabla se consultan via SELECT
+  const query = `
+    SELECT 
+      resultado,
+      cuenta_origen,
+      cuenta_destino,
+      monto,
+      nuevo_saldo_origen,
+      nuevo_saldo_destino,
+      servidor_procesador
+    FROM sp_transferir_dinero($1, $2, $3, $4);
+  `;
+
+  const valores = [cuentaOrigen, cuentaDestino, monto, descripcion];
+  const { rows } = await poolActual.query(query, valores);
   const duracion = Date.now() - tInicio;
-
-  // El SP devuelve un SELECT con los datos de confirmación
-  const row = result.recordset[0];
+  const row = rows[0];
 
   return {
-    resultado: row.Resultado,
-    cuentaOrigen: row.CuentaOrigen,
-    cuentaDestino: row.CuentaDestino,
-    monto: parseFloat(row.Monto),
-    nuevoSaldoOrigen: parseFloat(row.NuevoSaldoOrigen),
-    nuevoSaldoDestino: parseFloat(row.NuevoSaldoDestino),
-    servidorProcesador: row.ServidorProcesador,
+    resultado: row.resultado,
+    cuentaOrigen: row.cuenta_origen,
+    cuentaDestino: row.cuenta_destino,
+    monto: parseFloat(row.monto),
+    nuevoSaldoOrigen: parseFloat(row.nuevo_saldo_origen),
+    nuevoSaldoDestino: parseFloat(row.nuevo_saldo_destino),
+    servidorProcesador: row.servidor_procesador,
     tiempoRespuestaMs: duracion,
     fecha: new Date().toISOString()
   };
 }
 
 /**
- * 3. CONSULTAR ÚLTIMOS MOVIMIENTOS
- * Utiliza la vista `vw_UltimasTransacciones` de la base de datos.
+ * 3. CONSULTAR ULTIMOS MOVIMIENTOS GLOBALES
+ * Utiliza la vista `vw_ultimas_transacciones` con limite parametrizado (LIMIT $1).
  */
 async function obtenerUltimosMovimientos(limite = 15) {
-  const conn = await getPool();
-  const request = conn.request();
-  request.input('limite', sql.Int, limite);
-  
-  const result = await request.query(`
-    SELECT TOP (@limite)
-      IdTransaccion AS idTransaccion,
-      CuentaOrigen,
-      CuentaDestino,
-      TipoTransaccion,
-      Monto,
-      FechaTransaccion,
-      ServidorProcesador,
-      Estado,
-      Descripcion
-    FROM vw_UltimasTransacciones
-    ORDER BY FechaTransaccion DESC;
-  `);
+  const poolActual = getPool();
+  const query = `
+    SELECT 
+      id_transaccion AS "idTransaccion",
+      cuenta_origen AS "CuentaOrigen",
+      cuenta_destino AS "CuentaDestino",
+      tipo_transaccion AS "TipoTransaccion",
+      monto AS "Monto",
+      fecha_transaccion AS "FechaTransaccion",
+      servidor_procesador AS "ServidorProcesador",
+      estado AS "Estado",
+      descripcion AS "Descripcion"
+    FROM vw_ultimas_transacciones
+    ORDER BY fecha_transaccion DESC
+    LIMIT $1;
+  `;
 
-  return result.recordset;
+  const { rows } = await poolActual.query(query, [limite]);
+  return rows;
 }
 
 /**
- * 3.1 CONSULTAR MOVIMIENTOS DE UN PERFIL
- * Devuelve únicamente las transferencias en las que la cuenta seleccionada
- * participó como origen o como destino. Así cada perfil conserva su historial.
+ * 3.1 CONSULTAR HISTORIAL AISLADO POR CUENTA
+ * Devuelve unicamente las transacciones donde la cuenta especificada es emisor o receptor.
  */
 async function obtenerMovimientosPorCuenta(numeroCuenta, limite = 30) {
-  const conn = await getPool();
-  const request = conn.request();
-  request.input('numeroCuenta', sql.VarChar(20), numeroCuenta);
-  request.input('limite', sql.Int, limite);
+  const poolActual = getPool();
+  const query = `
+    SELECT 
+      id_transaccion AS "idTransaccion",
+      cuenta_origen AS "CuentaOrigen",
+      cuenta_destino AS "CuentaDestino",
+      tipo_transaccion AS "TipoTransaccion",
+      monto AS "Monto",
+      fecha_transaccion AS "FechaTransaccion",
+      servidor_procesador AS "ServidorProcesador",
+      estado AS "Estado",
+      descripcion AS "Descripcion"
+    FROM vw_ultimas_transacciones
+    WHERE cuenta_origen = $1 OR cuenta_destino = $1
+    ORDER BY fecha_transaccion DESC
+    LIMIT $2;
+  `;
 
-  const result = await request.query(`
-    SELECT TOP (@limite)
-      IdTransaccion AS idTransaccion,
-      CuentaOrigen,
-      CuentaDestino,
-      TipoTransaccion,
-      Monto,
-      FechaTransaccion,
-      ServidorProcesador,
-      Estado,
-      Descripcion
-    FROM vw_UltimasTransacciones
-    WHERE CuentaOrigen = @numeroCuenta OR CuentaDestino = @numeroCuenta
-    ORDER BY FechaTransaccion DESC;
-  `);
-
-  return result.recordset;
+  const { rows } = await poolActual.query(query, [numeroCuenta, limite]);
+  return rows;
 }
 
 /**
  * 4. CONSULTAR LISTA DE CLIENTES Y CUENTAS ACTIVAS
- * Utiliza la vista `vw_CuentasClientes` para mostrar los usuarios en la web.
+ * Consulta la vista `vw_cuentas_clientes` para poblar el listado de perfiles bancarios.
  */
 async function obtenerCuentasClientes() {
-  const conn = await getPool();
+  const poolActual = getPool();
   try {
-    const result = await conn.request().query(`
+    const query = `
       SELECT 
-        IdCliente,
-        CI,
-        Nombre,
-        Apellido,
-        IdCuenta,
-        NumeroCuenta,
-        TipoCuenta,
-        Saldo,
-        Estado
-      FROM vw_CuentasClientes
-      WHERE Estado = 1
-      ORDER BY IdCliente ASC;
-    `);
-
-    if (result.recordset && result.recordset.length > 0) {
-      return result.recordset;
+        id_cliente AS "IdCliente",
+        ci AS "CI",
+        nombre AS "Nombre",
+        apellido AS "Apellido",
+        id_cuenta AS "IdCuenta",
+        numero_cuenta AS "NumeroCuenta",
+        tipo_cuenta AS "TipoCuenta",
+        saldo AS "Saldo",
+        estado AS "Estado"
+      FROM vw_cuentas_clientes
+      WHERE estado = true
+      ORDER BY id_cliente ASC;
+    `;
+    const { rows } = await poolActual.query(query);
+    if (rows && rows.length > 0) {
+      return rows;
     }
   } catch (errVista) {
-    console.warn('Consulta a vw_CuentasClientes falló, ejecutando consulta directa de respaldo:', errVista.message);
+    console.warn('⚠️ [PostgreSQL] Consulta a vw_cuentas_clientes falló, intentando respaldo con JOIN:', errVista.message);
   }
 
-  // Fallback: consulta directa a las tablas base con JOIN
-  const fallbackResult = await conn.request().query(`
+  // Fallback transparente a tablas base en caso de que la vista no se encuentre disponible
+  const fallbackQuery = `
     SELECT 
-      c.IdCliente,
-      c.CI,
-      c.Nombre,
-      c.Apellido,
-      cu.IdCuenta,
-      cu.NumeroCuenta,
-      COALESCE(tc.NombreTipo, 'Ahorro') AS TipoCuenta,
-      cu.Saldo,
-      cu.Estado
-    FROM Clientes c
-    INNER JOIN Cuentas cu ON c.IdCliente = cu.IdCliente
-    LEFT JOIN TiposCuenta tc ON cu.IdTipoCuenta = tc.IdTipoCuenta
-    WHERE cu.Estado = 1
-    ORDER BY c.IdCliente ASC;
-  `);
+      c.id_cliente AS "IdCliente",
+      c.ci AS "CI",
+      c.nombre AS "Nombre",
+      c.apellido AS "Apellido",
+      cu.id_cuenta AS "IdCuenta",
+      cu.numero_cuenta AS "NumeroCuenta",
+      COALESCE(tc.nombre_tipo, 'Ahorro') AS "TipoCuenta",
+      cu.saldo AS "Saldo",
+      cu.estado AS "Estado"
+    FROM clientes c
+    INNER JOIN cuentas cu ON c.id_cliente = cu.id_cliente
+    LEFT JOIN tipos_cuenta tc ON cu.id_tipo_cuenta = tc.id_tipo_cuenta
+    WHERE cu.estado = true
+    ORDER BY c.id_cliente ASC;
+  `;
 
-  return fallbackResult.recordset;
+  const { rows } = await poolActual.query(fallbackQuery);
+  return rows;
 }
 
 /**
- * 4.1 OBTENER NÚMEROS DE CUENTA ACTIVOS
- * Fuente única para procesos que necesitan operar sobre todos los perfiles,
- * incluido el simulador de tráfico. No se mantiene una lista estática en Node.
+ * 4.1 OBTENER NUMEROS DE CUENTAS ACTIVAS
+ * Extrae un arreglo con las cadenas de numeros de cuenta vigentes para el simulador de trafico.
  */
 async function obtenerNumerosCuentasActivas() {
   const cuentas = await obtenerCuentasClientes();
-  return cuentas.map((cuenta) => cuenta.NumeroCuenta);
+  return cuentas.map((c) => c.NumeroCuenta);
 }
 
 /**
  * 5. REGISTRAR UN NUEVO CLIENTE Y SU CUENTA BANCARIA
+ * Ejecuta una transaccion atomica con bloqueo y clausula RETURNING de PostgreSQL.
  */
 async function crearClienteYCuenta({ nombre, apellido, ci, saldoInicial = 0 }) {
-  const conn = await getPool();
-  const request = conn.request();
+  const poolActual = getPool();
+  const client = await poolActual.connect();
 
-  request.input('nombre', sql.VarChar(50), String(nombre || '').trim());
-  request.input('apellido', sql.VarChar(50), String(apellido || '').trim());
-  request.input('ci', sql.VarChar(20), String(ci || '').trim());
-  request.input('saldoInicial', sql.Decimal(18, 2), Math.max(0, parseFloat(saldoInicial) || 0));
+  try {
+    await client.query('BEGIN');
 
-  const result = await request.query(`
-    BEGIN TRANSACTION;
-    BEGIN TRY
-        IF EXISTS (SELECT 1 FROM Clientes WHERE CI = @ci)
-        BEGIN
-            RAISERROR('El número de CI ya se encuentra registrado.', 16, 1);
-        END
+    // Validar unicidad del CI
+    const ciCheck = await client.query('SELECT 1 FROM clientes WHERE ci = $1', [ci]);
+    if (ciCheck.rows.length > 0) {
+      throw new Error('El número de CI ya se encuentra registrado.');
+    }
 
-        INSERT INTO Clientes (CI, Nombre, Apellido)
-        VALUES (@ci, @nombre, @apellido);
+    // Insertar cliente y capturar nuevo ID con RETURNING
+    const insertCliente = `
+      INSERT INTO clientes (ci, nombre, apellido)
+      VALUES ($1, $2, $3)
+      RETURNING id_cliente;
+    `;
+    const resCliente = await client.query(insertCliente, [ci, nombre, apellido]);
+    const nuevoIdCliente = resCliente.rows[0].id_cliente;
 
-        DECLARE @NuevoIdCliente INT = SCOPE_IDENTITY();
-        DECLARE @NuevoNumeroCuenta VARCHAR(20);
+    // Calcular siguiente numero de cuenta correlativo
+    const numCuentaQuery = `
+      SELECT COALESCE(MAX(numero_cuenta::BIGINT), 1000000000) + 1 AS siguiente_cuenta
+      FROM cuentas;
+    `;
+    const resCuentaNum = await client.query(numCuentaQuery);
+    const nuevoNumeroCuenta = String(resCuentaNum.rows[0].siguiente_cuenta);
 
-        SELECT @NuevoNumeroCuenta = CAST(ISNULL(MAX(CAST(NumeroCuenta AS BIGINT)), 1000000000) + 1 AS VARCHAR(20))
-        FROM Cuentas;
+    // Insertar cuenta asociada al cliente
+    const insertCuenta = `
+      INSERT INTO cuentas (id_cliente, id_tipo_cuenta, numero_cuenta, saldo)
+      VALUES ($1, 1, $2, $3)
+      RETURNING id_cuenta, saldo, estado;
+    `;
+    const resCuenta = await client.query(insertCuenta, [
+      nuevoIdCliente,
+      nuevoNumeroCuenta,
+      Math.max(0, parseFloat(saldoInicial) || 0)
+    ]);
+    const cuentaData = resCuenta.rows[0];
 
-        INSERT INTO Cuentas (IdCliente, IdTipoCuenta, NumeroCuenta, Saldo)
-        VALUES (@NuevoIdCliente, 1, @NuevoNumeroCuenta, @saldoInicial);
+    await client.query('COMMIT');
 
-        COMMIT TRANSACTION;
-
-        SELECT 
-          c.IdCliente,
-          c.CI,
-          c.Nombre,
-          c.Apellido,
-          cu.IdCuenta,
-          cu.NumeroCuenta,
-          'Ahorro' AS TipoCuenta,
-          cu.Saldo,
-          cu.Estado
-        FROM Clientes c
-        INNER JOIN Cuentas cu ON c.IdCliente = cu.IdCliente
-        WHERE c.IdCliente = @NuevoIdCliente;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
-        THROW;
-    END CATCH
-  `);
-
-  return result.recordset[0];
+    return {
+      IdCliente: nuevoIdCliente,
+      CI: ci,
+      Nombre: nombre,
+      Apellido: apellido,
+      IdCuenta: cuentaData.id_cuenta,
+      NumeroCuenta: nuevoNumeroCuenta,
+      TipoCuenta: 'Ahorro',
+      Saldo: parseFloat(cuentaData.saldo),
+      Estado: cuentaData.estado
+    };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 // Exportar las funciones para que puedan ser usadas por las rutas de Express y servicios
