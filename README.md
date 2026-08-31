@@ -69,6 +69,44 @@ El repositorio cuenta con guías especializadas según el perfil técnico:
 
 ---
 
+## 🔌 ¿Cómo y dónde configurar la conexión a SQL Server?
+
+Para que la aplicación se comunique correctamente con tu motor de base de datos o con el Listener del clúster Always On, **el único archivo que debes crear y editar es el archivo `.env` en la raíz del proyecto**.
+
+### 1. Archivo a modificar:
+👉 **`.env`** *(Copia de `.env.example`)*
+
+### 2. Parámetros que debes cambiar:
+
+```env
+PORT=3000
+
+# Dirección IP, nombre de equipo o DNS del Listener virtual Always On:
+# - Si pruebas en tu propia PC local: localhost o 127.0.0.1
+# - Si conectas al clúster de laboratorio: IP del Listener (ej. 192.168.1.150 o BANCO-LISTENER)
+DB_SERVER=localhost
+
+# Nombre exacto de la base de datos donde ejecutaste el script DDL (Sección 4 de CONTRIBUTING.md):
+DB_DATABASE=BancoHA_DB
+
+# Usuario con privilegios de lectura y ejecución en la base de datos (habitualmente 'sa'):
+DB_USER=sa
+
+# Contraseña establecida para el usuario en SQL Server:
+DB_PASSWORD=TuPassword123
+
+# Puerto TCP de escucha de SQL Server (predeterminado: 1433):
+DB_PORT=1433
+
+# Tiempos de espera críticos para conmutación rápida (Failover) en milisegundos:
+DB_CONNECT_TIMEOUT=4000
+DB_REQUEST_TIMEOUT=5000
+```
+
+> 💡 **Nota de arquitectura:** La capa de datos (`backend/database.js`) lee automáticamente estas variables usando `dotenv`. No necesitas tocar código JavaScript para cambiar de servidor o de credenciales. Si estás en una red Always On con múltiples subredes, el pool activa `multiSubnetFailover: true` de forma automática.
+
+---
+
 ## 🌐 Demostración 100% Client-Side (GitHub Pages)
 
 Para presentaciones o evaluaciones en cualquier dispositivo sin requerir Node.js ni SQL Server en ejecución:
